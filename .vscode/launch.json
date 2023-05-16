@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "Launch Program",
             "runtimeExecutable": "nodemon",
-            "program": "${workspaceFolder}/index.ts",
+            "program": "${workspaceFolder}/api/index.ts",
             "restart": true,
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
