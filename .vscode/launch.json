@@ -24,7 +24,7 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}/ui",
             "runtimeArgs": [
-                "vite", "dev", "--open"
+                "vite", "dev", "--", "--open"
             ],
             "type": "node",
             "serverReadyAction": {

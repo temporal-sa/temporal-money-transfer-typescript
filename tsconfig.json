@@ -5,6 +5,12 @@
     "sourceRoot": "api",
     "outDir": "api/out",
     "sourceMap": true,
-    "esModuleInterop": true
-  }
+    "esModuleInterop": true,
+		"allowJs": true,
+		"checkJs": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"skipLibCheck": true,
+		"strict": true
+	}
 }
