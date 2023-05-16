@@ -19,12 +19,20 @@ let secondsSinceServerStart: number = 0;
 
 // Start the timer when the server starts
 setInterval(() => {
-    secondsSinceServerStart += 5;
-}, 5000);
+    secondsSinceServerStart += 1;
+}, 1000);
 
 app.get('/countSeconds', (req: Request, res: Response) => {
     res.send({
-        message: `Seconds elapsed since the server started: ${secondsSinceServerStart}`
+        seconds: secondsSinceServerStart
+    });
+});
+
+// Add a new endpoint to reset the timer
+app.post('/resetTimer', (req: Request, res: Response) => {
+    secondsSinceServerStart = 0;
+    res.send({
+        message: 'Timer reset!'
     });
 });
 
