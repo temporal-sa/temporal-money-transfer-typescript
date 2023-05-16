@@ -19,7 +19,7 @@
     await fetch("http://localhost:3000/resetTimer", {
       method: "POST",
     });
-    seconds = 0;
+    // seconds = 0; for instant server-side update
   }
 </script>
 
