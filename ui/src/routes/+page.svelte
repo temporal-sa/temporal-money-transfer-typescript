@@ -12,8 +12,13 @@
 	const fromAccounts = ['Checking', 'Savings'];
   const toAccounts = ['Jordan Morris', 'Raúl Ruidíaz', 'Iván Rancic', 'Fredy Montero'];
 
-	function transferMoney() {
-		// Add your money transfer logic here
+	async function transferMoney() {
+    const res = await fetch("http://localhost:3000/runWorkflow", {
+      method: "POST",
+    });
+    const data = await res.json();
+    console.log(data);
+    
 		alert(`Transferring $${amount} from ${fromAccount} to ${toAccount}.`);
 	}
 

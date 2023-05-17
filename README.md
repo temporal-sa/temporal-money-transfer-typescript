@@ -1,7 +1,7 @@
 ## Temporal API and UI example
 
 ### Install
-- `cd api/`
+- `cd server/`
 - `npm install`
 
 - `cd ui/`
@@ -9,5 +9,5 @@
 
 ### Developer environment
 - Requires nodemon and ts-node installed
-- Open VSCode and hit 'start debugging'
-
+- Open VSCode and hit 'start debugging' on the 'Launch' configuration
+- For Temporal workers `npm run worker.workflow` and `npm run worker.activity`

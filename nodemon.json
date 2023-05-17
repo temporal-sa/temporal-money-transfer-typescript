@@ -1,7 +1,7 @@
 {
     "watch": ["."],
     "ext": "ts,.ts,.js,.svelte,.md,.css",
-    "exec": ["ts-node ./api/index.ts"],
+    "exec": ["ts-node ./server/index.ts"],
     "ignore": ["**/*.spec.ts"],
     "env": {
       "NODE_ENV": "development"

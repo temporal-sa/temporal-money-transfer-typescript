@@ -2,8 +2,8 @@
   "compilerOptions": {
     "target": "es5",
     "module": "commonjs",
-    "sourceRoot": "api",
-    "outDir": "api/out",
+    "sourceRoot": "server",
+    "outDir": "server/out",
     "sourceMap": true,
     "esModuleInterop": true,
 		"allowJs": true,

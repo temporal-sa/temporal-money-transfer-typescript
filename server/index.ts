@@ -1,8 +1,12 @@
 import * as dotenv from "dotenv";
-import express, {Request, Response} from 'express';
+import express, { Request, Response } from 'express';
+import { initWorkflowParameterObj } from './temporal/config';
+import { getConfig } from "./temporal/config";
+dotenv.config();
 
 // TEMPORARY: Allow CORS for all origins
 import cors from 'cors';
+import { runWorkflow } from "./temporal/caller";
 
 // express handler for GET /
 const app = express();
@@ -33,6 +37,21 @@ app.post('/resetTimer', (req: Request, res: Response) => {
     secondsSinceServerStart = 0;
     res.send({
         message: 'Timer reset!'
+    });
+});
+
+// runWorkflow API
+app.post('/runWorkflow', async (req: Request, res: Response) => {
+
+    const config = getConfig();
+
+    const workflowParameterObj = initWorkflowParameterObj();
+
+    const result = await runWorkflow(config, workflowParameterObj);
+
+    res.send({
+        message: 'runWorkflow API called!',
+        result: result
     });
 });
 
