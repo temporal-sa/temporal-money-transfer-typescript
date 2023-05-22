@@ -10,6 +10,8 @@
 	let toAccount = "";
 	let amount = 0;
 	let transferSubmitted = false;
+	let transferId = "";
+	let transferState = "";
 	const fromAccounts = ["Checking", "Savings"];
 	const toAccounts = [
 		"Jordan Morris",
@@ -19,22 +21,39 @@
 	];
 
 	async function transferMoney() {
-		// const res = await fetch("http://localhost:3000/runWorkflow", {
-		// 	method: "POST",
-		// });
-		// const data = await res.json();
-		// console.log(data);
+		const res = await fetch("http://localhost:3000/runWorkflow", {
+			method: "POST",
+		});
+		const data = await res.json();
+		console.log(data);
 		transferSubmitted = true;
-		alert(`Transferring $${amount} from ${fromAccount} to ${toAccount}.`);
+		transferId = data.transferId;
 	}
 
-	let seconds = 0;
+	async function getWorkflowState() {
+		const res = await fetch("http://localhost:3000/runQuery", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				workflowId: transferId,
+			}),
+		});
+
+		// fetch from runQuery with workflowId
+
+		const data = await res.json();
+		return data;
+		// alert(`Transferring $${amount} from ${fromAccount} to ${toAccount}.`);
+	}
 
 	onMount(async () => {
 		const intervalId = setInterval(async () => {
-			const res = await fetch("http://localhost:3000/countSeconds");
-			const data = await res.json();
-			seconds = data.seconds;
+			if (transferId === "") {
+				return;
+			}
+			transferState = await getWorkflowState();
 		}, 5000);
 
 		return () => {
@@ -42,12 +61,6 @@
 		};
 	});
 
-	async function resetTimer() {
-		await fetch("http://localhost:3000/resetTimer", {
-			method: "POST",
-		});
-		// seconds = 0; for instant server-side update
-	}
 </script>
 
 <PageTitle title="Money Transfer App" url={$page.url.href} />
@@ -107,9 +120,9 @@
 			<p>From: {fromAccount}</p>
 			<p>To: {toAccount}</p>
 			<p>Amount: ${amount}</p>
-			<div>{seconds}</div>
-			<button on:click={resetTimer}>Reset Timer</button>
+			<br/>
+			<p>Transfer ID: {transferId}</p>
+			<p>Transfer State: {transferState.state}</p>
 		</div>
 	{/if}
-
 </section>

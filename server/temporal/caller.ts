@@ -3,11 +3,10 @@ import fs from 'fs-extra';
 import { ResultObj, WorkflowParameterObj } from './interfaces';
 import { TASK_QUEUE_WORKFLOW } from './config';
 import { nanoid } from 'nanoid';
-import { moneyTransferWorkflow } from './workflows';
+import { getStateQuery, moneyTransferWorkflow } from './workflows';
 import { ConfigObj } from './config';
 
-export async function runWorkflow(config: ConfigObj, workflowParameterObj: WorkflowParameterObj): Promise<ResultObj> {
-
+async function createClient(config: ConfigObj): Promise<Client> {
   const cert = await fs.readFile(config.certPath);
   const key = await fs.readFile(config.keyPath);
 
@@ -37,20 +36,44 @@ export async function runWorkflow(config: ConfigObj, workflowParameterObj: Workf
     // dataConverter: await getDataConverter()
   });
 
+  return client;
+}
+
+export async function runWorkflow(config: ConfigObj, workflowParameterObj: WorkflowParameterObj): Promise<String> {
+
+  const client = await createClient(config);
+
+  const transferId = 'transfer-' + nanoid();
+
   // start() returns a WorkflowHandle that can be used to await the result
   const handle = await client.workflow.start(moneyTransferWorkflow, {
     // type inference works! args: [name: string]
     args: [workflowParameterObj],
     taskQueue: TASK_QUEUE_WORKFLOW,
     // in practice, use a meaningful business ID, like customerId or transactionId
-    workflowId: 'workflow-' + nanoid()
+    workflowId: transferId
   });
 
-  let result = await handle.result()
-  console.log(result); // Hello, Temporal!
+  // don't wait for workflow to finish
+  // let result = await handle.result()
+  // console.log(result); // Hello, Temporal!
 
   await client.connection.close();
 
-  return result;
+  return transferId;
+
+}
+
+export async function runQuery(config: ConfigObj, workflowId: string): Promise<String> {
+
+  const client = await createClient(config);
+
+  const handle = client.workflow.getHandle(workflowId);
+
+  const queryResult = await handle.query(getStateQuery);
+
+  await client.connection.close();
+
+  return queryResult;
 
 }

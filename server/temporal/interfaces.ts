@@ -3,5 +3,5 @@ export interface WorkflowParameterObj {
 }
 
 export interface ResultObj {
-    result: string;
+    testActivityResult: string;
 }
