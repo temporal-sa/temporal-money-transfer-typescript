@@ -6,6 +6,9 @@
 	import PageTitle from "@temporalio/ui/components/page-title.svelte";
 	import Button from "@temporalio/ui/holocene/button.svelte";
 
+	console.log("API url grabbed from .env: ", import.meta.env.VITE_API_URL);
+	const API_URL = import.meta.env.VITE_API_URL
+
 	let fromAccount = "";
 	let toAccount = "";
 	let amount = 0;
@@ -21,7 +24,7 @@
 	];
 
 	async function transferMoney() {
-		const res = await fetch("http://localhost:3000/runWorkflow", {
+		const res = await fetch(`${API_URL}/runWorkflow`, {
 			method: "POST",
 		});
 		const data = await res.json();
@@ -31,7 +34,7 @@
 	}
 
 	async function getWorkflowState() {
-		const res = await fetch("http://localhost:3000/runQuery", {
+		const res = await fetch(`${API_URL}/runQuery`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",

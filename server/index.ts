@@ -3,7 +3,7 @@ import express, { Request, Response } from 'express';
 import { initWorkflowParameterObj } from './temporal/config';
 import { getConfig } from "./temporal/config";
 import bodyParser from "body-parser";
-dotenv.config({path:__dirname+'/./../.env'});
+dotenv.config({path:__dirname+'/./.env'});
 
 // TEMPORARY: Allow CORS for all origins
 import cors from 'cors';

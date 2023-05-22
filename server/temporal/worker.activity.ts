@@ -3,7 +3,7 @@ import * as activities from './activities';
 import fs from 'fs-extra';
 import { getConfig, TASK_QUEUE_ACTIVITY } from './config';
 import dotenv from 'dotenv';
-dotenv.config({path:__dirname+'/./../../.env'});
+dotenv.config({path:__dirname+'/./../.env'});
 
 // import { getDataConverter } from './data-converter';
 
