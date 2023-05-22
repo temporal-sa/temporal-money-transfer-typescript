@@ -1,8 +1,8 @@
 import { NativeConnection, Worker } from '@temporalio/worker';
 import * as activities from './activities';
-import fs from 'fs-extra';
 import { getConfig, TASK_QUEUE_WORKFLOW } from './config';
 import dotenv from 'dotenv';
+import { getCertKeyBuffers } from './certificate_helpers';
 dotenv.config({path:__dirname+'/./../.env'});
 
 // import { getDataConverter } from './data-converter';
@@ -11,9 +11,7 @@ const config = getConfig();
 
 async function run() {
 
-  console.log(JSON.stringify(config));
-  const cert = await fs.readFile(config.certPath);
-  const key = await fs.readFile(config.keyPath);
+  const { cert, key } = await getCertKeyBuffers(config);
 
   const connection = await NativeConnection.connect({
     // defaults port to 7233 if not specified

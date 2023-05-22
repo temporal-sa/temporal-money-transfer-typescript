@@ -5,10 +5,11 @@ import { TASK_QUEUE_WORKFLOW } from './config';
 import { nanoid } from 'nanoid';
 import { getStateQuery, moneyTransferWorkflow } from './workflows';
 import { ConfigObj } from './config';
+import { getCertKeyBuffers } from './certificate_helpers';
 
 async function createClient(config: ConfigObj): Promise<Client> {
-  const cert = await fs.readFile(config.certPath);
-  const key = await fs.readFile(config.keyPath);
+
+  const { cert, key } = await getCertKeyBuffers(config);
 
   // todo make this meaningful
   const { NODE_ENV = 'production' } = process.env;
