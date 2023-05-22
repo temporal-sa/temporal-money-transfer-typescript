@@ -12,25 +12,28 @@ const { testActivity } = proxyActivities<typeof activities>({
   startToCloseTimeout: '1 minute',
 });
 
-export const getStateQuery = defineQuery<string>('getState');
+export const getStateQuery = defineQuery<number>('getState');
 
 
 /** A workflow that simply calls an activity */
 export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParameterObj): Promise<ResultObj> {
 
-  let state = "STARTED";
+  let state = 25;
   setHandler(getStateQuery, () => state);
 
   let resultObj: ResultObj = { testActivityResult: '' };
 
-  // sleep for 10s
-  await sleep('10 seconds');
+  await sleep('5 seconds');
+
+  state = 75;
 
   const activityResult = await testActivity('test');
 
   resultObj.testActivityResult = activityResult;
 
-  state = "FINISHED";
+  await sleep('5 seconds');
+
+  state = 100;
 
   return resultObj
 }

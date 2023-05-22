@@ -15,6 +15,7 @@
 	let transferSubmitted = false;
 	let transferId = "";
 	let transferState = "";
+	let progressPercentage = 0;
 	const fromAccounts = ["Checking", "Savings"];
 	const toAccounts = [
 		"Jordan Morris",
@@ -57,6 +58,7 @@
 				return;
 			}
 			transferState = await getWorkflowState();
+			progressPercentage = transferState.state;
 		}, 5000);
 
 		return () => {
@@ -118,14 +120,23 @@
 			<Button on:click={transferMoney}>Transfer</Button>
 		</div>
 	{:else}
-		<div class="w-1/2 border-2 border-gray-200 p-4 rounded-md">
-			<p>Transfer submitted:</p>
-			<p>From: {fromAccount}</p>
-			<p>To: {toAccount}</p>
-			<p>Amount: ${amount}</p>
-			<br/>
-			<p>Transfer ID: {transferId}</p>
-			<p>Transfer State: {transferState.state}</p>
+	<div class="w-1/2 mx-auto mt-10 bg-white shadow-lg rounded-lg overflow-hidden">
+		<div class="py-4 px-6">
+			<h2 class="text-2xl font-bold text-gray-700">Submitted</h2>
+			<p class="py-2 text-gray-700 font-semibold">From: <span class="font-normal">{fromAccount}</span></p>
+			<p class="py-2 text-gray-700 font-semibold">To: <span class="font-normal">{toAccount}</span></p>
+			<p class="py-2 text-gray-700 font-semibold">Amount: <span class="font-normal">${amount}</span></p>
 		</div>
+		<div class="py-4 px-6">
+			<p class="text-gray-700 font-semibold">Transfer Progress: {progressPercentage}% </p>
+			{#if progressPercentage === 100}
+				<p class="text-green-500 font-semibold">Transfer complete!</p>
+			{/if}
+		</div>		
+		<div class="px-6 py-3 bg-gray-100 text-right">
+			<p class="text-gray-400 text-sm">Transfer ID: {transferId}</p>
+		</div>
+	</div>
+	
 	{/if}
 </section>

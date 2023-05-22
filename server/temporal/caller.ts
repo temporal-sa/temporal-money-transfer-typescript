@@ -65,7 +65,7 @@ export async function runWorkflow(config: ConfigObj, workflowParameterObj: Workf
 
 }
 
-export async function runQuery(config: ConfigObj, workflowId: string): Promise<String> {
+export async function runQuery(config: ConfigObj, workflowId: string): Promise<number> {
 
   const client = await createClient(config);
 
