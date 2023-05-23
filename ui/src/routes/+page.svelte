@@ -18,10 +18,10 @@
 	let progressPercentage = 10;
 	const fromAccounts = ["Checking", "Savings"];
 	const toAccounts = [
-		"Jordan Morris",
+		"Justine Morris",
 		"Raúl Ruidíaz",
 		"Iván Rancic",
-		"Fredy Montero",
+		"Marta Montero",
 	];
 
 	async function transferMoney() {
@@ -73,7 +73,7 @@
 	<Loading title="" />
 	<h2 class="text-2xl flex items-center gap-1">Transfer Money</h2>
 	{#if !transferSubmitted}
-		<div class="w-1/2 border-2 border-gray-200 p-4 rounded-md">
+		<div class="sm:w-1/2 w-full border-gray-200 p-4 rounded-md">
 			<label
 				for="from-account"
 				class="block text-sm font-medium text-gray-700"
@@ -89,7 +89,7 @@
 				{/each}
 			</select>
 		</div>
-		<div class="w-1/2 border-2 border-gray-200 p-4 rounded-md">
+		<div class="sm:w-1/2 w-full border-gray-200 p-4 rounded-md">
 			<label
 				for="to-account"
 				class="block text-sm font-medium text-gray-700"
@@ -105,7 +105,7 @@
 				{/each}
 			</select>
 		</div>
-		<div class="w-1/2 border-2 border-gray-200 p-4 rounded-md">
+		<div class="sm:w-1/2 w-full border-gray-200 p-4 rounded-md">
 			<label for="amount" class="block text-sm font-medium text-gray-700"
 				>Amount (In USD)</label
 			>
@@ -120,7 +120,7 @@
 			<Button on:click={transferMoney}>Transfer</Button>
 		</div>
 	{:else}
-	<div class="w-1/2 mx-auto mt-10 bg-white shadow-lg rounded-lg overflow-hidden">
+	<div class="sm:w-1/2 w-full mx-auto mt-10 bg-white shadow-lg rounded-lg overflow-hidden">
 		<div class="py-4 px-6">
 			<h2 class="text-2xl font-bold text-gray-700">Submitted</h2>
 			<p class="py-2 text-gray-700 font-semibold">From: <span class="font-normal">{fromAccount}</span></p>
@@ -141,7 +141,7 @@
 			{/if}
 		</div>		
 		<div class="px-6 py-3 bg-gray-100 text-right">
-			<p class="text-gray-400 text-sm">Transfer ID: {transferId}</p>
+			<p class="text-gray-400 text-sm">{transferId}</p>
 		</div>
 	</div>
 	
