@@ -2,6 +2,8 @@
 http://server3000-9237260.us-east-2.elb.amazonaws.com/
 (AWS ECS)
 
+- TODO, coherent instructions!
+
 ### Install
 - `cd server/`
 - `npm install`
@@ -23,21 +25,21 @@ http://server3000-9237260.us-east-2.elb.amazonaws.com/
 
 #### Server
 
-cd server
+`cd server`
 
-docker build -t temporal-moneytransfer-server .
+`docker build -t temporal-moneytransfer-server .`
 
-docker run -p 3000:3000 -e CERT_CONTENT="$(cat /Users/steveandroulakis/Documents/Code/temporal-client-cert/androulakis.pem)" -e KEY_CONTENT="$(cat /Users/steveandroulakis/Documents/Code/temporal-client-cert/androulakis.key)" -e ADDRESS="steveandroulakis-test-1.sdvdw.tmprl.cloud:7233" -e NAMESPACE="steveandroulakis-test-1.sdvdw" -e PORT=3000 -d --platform linux/amd64 temporal-moneytransfer-server
+`docker run -p 3000:3000 -e CERT_CONTENT="$(cat /path/to/cert.pem)" -e KEY_CONTENT="$(cat /path/to/cert.key)" -e ADDRESS="steveandroulakis-test-1.sdvdw.tmprl.cloud:7233" -e NAMESPACE="steveandroulakis-test-1.sdvdw" -e PORT=3000 -d --platform linux/amd64 temporal-moneytransfer-server`
 
 #### Workers
 
-cd server
+`cd server`
 
 docker build -f temporal/Dockerfile -t temporal-moneytransfer-worker .
 
-docker run -e CERT_CONTENT="$(cat /Users/steveandroulakis/Documents/Code/temporal-client-cert/androulakis.pem)" -e KEY_CONTENT="$(cat /Users/steveandroulakis/Documents/Code/temporal-client-cert/androulakis.key)" -e ADDRESS="steveandroulakis-test-1.sdvdw.tmprl.cloud:7233" -e NAMESPACE="steveandroulakis-test-1.sdvdw" -e WORKER_TYPE=workflow -d --platform linux/amd64 temporal-moneytransfer-worker
+`docker run -e CERT_CONTENT="$(cat /path/to/cert.pem)" -e KEY_CONTENT="$(cat /path/to/cert.key)" -e ADDRESS="steveandroulakis-test-1.sdvdw.tmprl.cloud:7233" -e NAMESPACE="steveandroulakis-test-1.sdvdw" -e WORKER_TYPE=workflow -d --platform linux/amd64 temporal-moneytransfer-worker`
 
-docker run -e CERT_CONTENT="$(cat /Users/steveandroulakis/Documents/Code/temporal-client-cert/androulakis.pem)" -e KEY_CONTENT="$(cat /Users/steveandroulakis/Documents/Code/temporal-client-cert/androulakis.key)" -e ADDRESS="steveandroulakis-test-1.sdvdw.tmprl.cloud:7233" -e NAMESPACE="steveandroulakis-test-1.sdvdw" -e WORKER_TYPE=activity -d --platform linux/amd64 temporal-moneytransfer-worker
+`docker run -e CERT_CONTENT="$(cat /path/to/cert.pem)" -e KEY_CONTENT="$(cat /path/to/cert.key)" -e ADDRESS="steveandroulakis-test-1.sdvdw.tmprl.cloud:7233" -e NAMESPACE="steveandroulakis-test-1.sdvdw" -e WORKER_TYPE=activity -d --platform linux/amd64 temporal-moneytransfer-worker`
 
 
 docker logs -f d65ae99260a3
@@ -45,17 +47,34 @@ docker logs -f d65ae99260a3
 
 #### UI
 
-cd ui
+`cd ui`
 
-docker build -t temporal-moneytransfer-ui .
+`docker build -t temporal-moneytransfer-ui .`
 
-docker run -p 3001:3001 -e VITE_API_URL="http://localhost:3000" -e PORT=3001 -d --platform linux/amd64 temporal-moneytransfer-ui
+`docker run -p 3001:3001 -e VITE_API_URL="http://localhost:3000" -e PORT=3001 -d --platform linux/amd64 temporal-moneytransfer-ui`
 
 
 
 ### rough notes to self on things to improve
 
-- Need a real workflow that does something
-- No set API schema between API and server
-- Env ships statically so need to make docker images with hardcoded API URL, ugh
-- certificate management isn't crazy-insecure but isn't hyper secure either (certs and keys as environment variables)
+```
+DONE:
+- Svelte UI
+- Express API
+- Simple money transfer workflow
+- The UI updates based on workflow state (via API->queries)
+- Uses Temporal Cloud
+- Separation of concerns: Docker images for Express API, Svelte UI, Temporal Worker
+- Currently hosted on AWS ECS, load balanced
+- Dev environment easily launchable using VSCode
+
+TODO:
+- Make workflow and use case more sophisticated
+	- Expose settings to simulate the unreliability of APIs
+	- Ways to simulate failures
+- Common API schema (protobuf or similar)
+- CICD pipelines and IaC (Terraform?) for easy redeployability
+- Make more portable by improving setup config
+- Kubernetes instead of ECS?
+- Fix ugly code, write tests
+```
