@@ -58,6 +58,4 @@ docker run -p 3001:3001 -e VITE_API_URL="http://localhost:3000" -e PORT=3001 -d 
 - Need a real workflow that does something
 - No set API schema between API and server
 - Env ships statically so need to make docker images with hardcoded API URL, ugh
-- certificate management isn't crazy-insecure but isn't secure either (certs and keys as environment variables)
-
-## cors on server express ?
+- certificate management isn't crazy-insecure but isn't hyper secure either (certs and keys as environment variables)
