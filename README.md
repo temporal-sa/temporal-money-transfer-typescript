@@ -54,6 +54,25 @@ docker logs -f d65ae99260a3
 
 `docker run -p 3001:3001 -e VITE_API_URL="http://localhost:3000" -e PORT=3001 -d --platform linux/amd64 temporal-moneytransfer-ui`
 
+# Kubernetes
+
+Create the secrets first from your keys
+```
+kubectl create secret generic temporal-EXAMPLE-tls \
+    --from-file=tls.crt=/path/to/your/tls.crt \
+    --from-file=tls.key=/path/to/your/tls.key
+```
+
+- Edit the yaml files to ensure your environment variables are correct (e.g. namespace and address).
+
+```
+cd yaml/
+kubectl apply -f deployments/server-deployment.yaml
+kubectl apply -f deployments/ui-deployment.yaml
+kubectl apply -f services/server-service.yaml
+kubectl apply -f services/ui-service.yaml
+```
+
 
 
 ### rough notes to self on things to improve
@@ -70,12 +89,11 @@ DONE:
 - Dev environment easily launchable using VSCode
 
 TODO:
+- The UI container builds with a hard-coded API location. Needs to be more flexible.
 - Make workflow and use case more sophisticated
 	- Expose settings to simulate the unreliability of APIs
 	- Ways to simulate failures
 - Common API schema (protobuf or similar)
 - CICD pipelines and IaC (Terraform?) for easy redeployability
-- Make more portable by improving setup config
-- Kubernetes instead of ECS?
 - Fix ugly code, write tests
 ```
