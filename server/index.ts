@@ -1,9 +1,19 @@
-import * as dotenv from "dotenv";
+import { config } from 'dotenv';
+import { resolve } from 'path';
 import express, { Request, Response } from 'express';
 import { initWorkflowParameterObj } from './temporal/config';
 import { getConfig } from "./temporal/config";
 import bodyParser from "body-parser";
-dotenv.config({ path: __dirname + '/./.env' });
+
+const path = process.env.NODE_ENV === 'production'
+  ? resolve(__dirname, './.env.production')
+  : resolve(__dirname, './.env.development');
+
+config({ path });
+
+const configtest = getConfig();
+console.log(process.env.NODE_ENV);
+console.log(configtest.certPath);
 
 // TEMPORARY: Allow CORS for all origins
 import cors from 'cors';

@@ -17,8 +17,9 @@ http://server3000-9237260.us-east-2.elb.amazonaws.com/
 - For Temporal workers `npm run worker.workflow` and `npm run worker.activity`
 
 ### Configuration
-- `server/` contains `.env_example`. Copy it to `.env` and change settings to match your temporal installation.
-- `ui/` contains `.env_example`. Copy it to `.env` and change settings to point to your API (server) location
+- `server/` contains `.env_example`. Copy it to `.env.development` and change settings to match your temporal installation.
+- `ui/` contains `.env_example`. Copy it to `.env.development` and change settings to point to your API (server) location
+- The server respects .env.production if NODE_ENV is "production" (and the Svelte app is built using npm run build such as in the Dockerfile)
 
 ### Docker
 

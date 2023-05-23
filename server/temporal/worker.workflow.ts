@@ -1,21 +1,31 @@
+import { config } from 'dotenv';
+import { resolve } from 'path';
 import { NativeConnection, Worker } from '@temporalio/worker';
 import * as activities from './activities';
 import { getConfig, TASK_QUEUE_WORKFLOW } from './config';
-import dotenv from 'dotenv';
 import { getCertKeyBuffers } from './certificate_helpers';
-dotenv.config({path:__dirname+'/./../.env'});
+
+const path = process.env.NODE_ENV === 'production'
+  ? resolve(__dirname, './.env.production')
+  : resolve(__dirname, './.env.development');
+
+config({ path });
+
+const configtest = getConfig();
+console.log(process.env.NODE_ENV);
+console.log(configtest.certPath);
 
 // import { getDataConverter } from './data-converter';
 
-const config = getConfig();
+const configObj = getConfig();
 
 async function run() {
 
-  const { cert, key } = await getCertKeyBuffers(config);
+  const { cert, key } = await getCertKeyBuffers(configObj);
 
   const connection = await NativeConnection.connect({
     // defaults port to 7233 if not specified
-    address: config.address,
+    address: configObj.address,
     tls: {
       // set to true if TLS without mTLS
       // See docs for other TLS options
@@ -30,7 +40,7 @@ async function run() {
     connection: connection,
     workflowsPath: require.resolve('./workflows'),
     activities: activities,
-    namespace: config.namespace,
+    namespace: configObj.namespace,
     taskQueue: TASK_QUEUE_WORKFLOW,
     // dataConverter: await getDataConverter(),
     enableNonLocalActivities: false
