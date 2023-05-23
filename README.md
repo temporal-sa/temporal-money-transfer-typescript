@@ -1,4 +1,6 @@
 ## Temporal API and UI example
+http://server3000-9237260.us-east-2.elb.amazonaws.com/
+(AWS ECS)
 
 ### Install
 - `cd server/`
@@ -48,3 +50,14 @@ cd ui
 docker build -t temporal-moneytransfer-ui .
 
 docker run -p 3001:3001 -e VITE_API_URL="http://localhost:3000" -e PORT=3001 -d --platform linux/amd64 temporal-moneytransfer-ui
+
+
+
+### rough notes to self on things to improve
+
+- Need a real workflow that does something
+- No set API schema between API and server
+- Env ships statically so need to make docker images with hardcoded API URL, ugh
+- certificate management isn't crazy-insecure but isn't secure either (certs and keys as environment variables)
+
+## cors on server express ?

@@ -15,7 +15,7 @@
 	let transferSubmitted = false;
 	let transferId = "";
 	let transferState = "";
-	let progressPercentage = 0;
+	let progressPercentage = 10;
 	const fromAccounts = ["Checking", "Savings"];
 	const toAccounts = [
 		"Jordan Morris",
@@ -26,7 +26,7 @@
 
 	async function transferMoney() {
 		const res = await fetch(`${API_URL}/runWorkflow`, {
-			method: "POST",
+			method: "POST"
 		});
 		const data = await res.json();
 		console.log(data);
@@ -128,9 +128,16 @@
 			<p class="py-2 text-gray-700 font-semibold">Amount: <span class="font-normal">${amount}</span></p>
 		</div>
 		<div class="py-4 px-6">
-			<p class="text-gray-700 font-semibold">Transfer Progress: {progressPercentage}% </p>
 			{#if progressPercentage === 100}
 				<p class="text-green-500 font-semibold">Transfer complete!</p>
+			{/if}
+			{#if progressPercentage < 100}
+				<p class="text-lightgrey-500 font-semibold">Transfer Progress: {progressPercentage}%</p>
+
+				<div class="progress-bar">
+					<div class="progress" style="width: {progressPercentage}%;">
+					</div>
+				</div>
 			{/if}
 		</div>		
 		<div class="px-6 py-3 bg-gray-100 text-right">
