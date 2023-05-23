@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-money-transfer-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: temporal-money-transfer-ui
+  template:
+    metadata:
+      labels:
+        app: temporal-money-transfer-ui
+    spec:
+      containers:
+      - name: ui
+        image: 429214323166.dkr.ecr.us-east-2.amazonaws.com/temporal-moneytransfer-ui:latest
+        imagePullPolicy: Always
+        ports:
+        - name: ui
+          containerPort: 80
+        env:
+        - name: PORT
+          value: "80"
