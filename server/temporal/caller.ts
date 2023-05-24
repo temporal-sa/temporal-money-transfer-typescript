@@ -1,4 +1,4 @@
-import { Client, Connection } from '@temporalio/client';
+import { Client, Connection, WorkflowFailedError } from '@temporalio/client';
 import fs from 'fs-extra';
 import { ResultObj, StateObj, WorkflowParameterObj } from './interfaces';
 import { TASK_QUEUE_WORKFLOW } from './config';
@@ -80,9 +80,28 @@ export async function runQuery(config: ConfigObj, workflowId: string): Promise<S
   const handle = client.workflow.getHandle(workflowId);
 
   const queryResult = await handle.query(getStateQuery);
+  const describe = await handle.describe();
+  queryResult.workflowStatus = describe.status.name;
 
   await client.connection.close();
 
   return queryResult;
+
+}
+
+export async function getWorkflowOutcome(config: ConfigObj, workflowId: string): Promise<StateObj> {
+
+  const client = await createClient(config);
+
+  const handle = client.workflow.getHandle(workflowId);
+
+  let result = null;
+  try {
+    result = await handle.result();
+  } catch (err) {
+    result = err;
+  }
+
+  return result;
 
 }

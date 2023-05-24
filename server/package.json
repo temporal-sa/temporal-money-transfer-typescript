@@ -20,7 +20,8 @@
         "dotenv": "^16.0.3",
         "express": "^4.18.2",
         "fs-extra": "^11.1.1",
-        "nanoid": "3.x"
+        "nanoid": "3.x",
+        "stripe": "^12.6.0"
     },
     "devDependencies": {
         "@types/cors": "^2.8.13",

@@ -17,7 +17,7 @@ console.log(configtest.certPath);
 
 // TEMPORARY: Allow CORS for all origins
 import cors from 'cors';
-import { runQuery, runWorkflow } from "./temporal/caller";
+import { getWorkflowOutcome, runQuery, runWorkflow } from "./temporal/caller";
 
 // express handler for GET /
 const app = express();
@@ -43,11 +43,33 @@ app.post('/runWorkflow', async (req: Request, res: Response) => {
 
     const workflowParameterObj = initWorkflowParameterObj();
 
+    // form takes input as dollars, convert to cents
+    workflowParameterObj.amountCents = req.body.amount * 100;
+
     const transferId = await runWorkflow(config, workflowParameterObj);
 
     res.send({
         transferId: transferId
     });
+});
+
+app.post('/getWorkflowOutcome', async (req: Request, res: Response) => {
+
+    if (!req.body.workflowId) {
+        return res.send({"message": "workflowId is required"});
+    }
+
+    // get workflowId from request POST body
+    const workflowId = req.body.workflowId;
+
+    const config = getConfig();
+
+    const workflowOutcome = await getWorkflowOutcome(config, workflowId);
+
+    console.log(`outcome: ${workflowOutcome}`);
+
+    res.send(workflowOutcome);
+
 });
 
 app.post('/runQuery', async (req: Request, res: Response) => {

@@ -7,7 +7,7 @@
 	import Button from "@temporalio/ui/holocene/button.svelte";
 
 	console.log("API url grabbed from .env: ", import.meta.env.VITE_API_URL);
-	const API_URL = import.meta.env.VITE_API_URL
+	const API_URL = import.meta.env.VITE_API_URL;
 
 	let fromAccount = "";
 	let toAccount = "";
@@ -15,7 +15,10 @@
 	let transferSubmitted = false;
 	let transferId = "";
 	let transferState = "";
+	let workflowOutcome = null;
 	let progressPercentage = 10;
+	let chargeId = "";
+	let failed = false;
 	const fromAccounts = ["Checking", "Savings"];
 	const toAccounts = [
 		"Justine Morris",
@@ -25,8 +28,15 @@
 	];
 
 	async function transferMoney() {
+		console.log(`transferring $${amount}`);
 		const res = await fetch(`${API_URL}/runWorkflow`, {
-			method: "POST"
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				amount: amount,
+			}),
 		});
 		const data = await res.json();
 		console.log(data);
@@ -52,24 +62,50 @@
 		// alert(`Transferring $${amount} from ${fromAccount} to ${toAccount}.`);
 	}
 
+	// Unused function to get reason for workflow failure
+	async function getWorkflowOutcome() {
+		const res = await fetch(`${API_URL}/getWorkflowOutcome`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				workflowId: transferId,
+			}),
+		});
+
+		// fetch from runQuery with workflowId
+
+		const data = await res.json();
+		return data;
+		// alert(`Transferring $${amount} from ${fromAccount} to ${toAccount}.`);
+	}
+
 	onMount(async () => {
 		const intervalId = setInterval(async () => {
+
 			if (transferId === "") {
 				return;
 			}
-			if (transferState.state === "finished") {
+			if (transferState.transferState === "finished" || failed) {
 				return;
 			}
+			if (transferState.workflowStatus === "FAILED") {
+				failed = true;
+				return;
+			}
+
 			transferState = await getWorkflowState();
 			progressPercentage = transferState.progressPercentage;
+			chargeId = transferState.chargeResult.chargeId;
 			console.log("transferState: ", transferState);
-		}, 2000);
+
+		}, 1000);
 
 		return () => {
 			clearInterval(intervalId);
 		};
 	});
-
 </script>
 
 <PageTitle title="Money Transfer App" url={$page.url.href} />
@@ -124,30 +160,52 @@
 			<Button on:click={transferMoney}>Transfer</Button>
 		</div>
 	{:else}
-	<div class="sm:w-1/2 w-full mx-auto mt-10 bg-white shadow-lg rounded-lg overflow-hidden">
-		<div class="py-4 px-6">
-			<h2 class="text-2xl font-bold text-gray-700">Submitted</h2>
-			<p class="py-2 text-gray-700 font-semibold">From: <span class="font-normal">{fromAccount}</span></p>
-			<p class="py-2 text-gray-700 font-semibold">To: <span class="font-normal">{toAccount}</span></p>
-			<p class="py-2 text-gray-700 font-semibold">Amount: <span class="font-normal">${amount}</span></p>
-		</div>
-		<div class="py-4 px-6">
-			{#if progressPercentage === 100}
-				<p class="text-green-500 font-semibold">Transfer complete!</p>
-			{/if}
-			{#if progressPercentage < 100}
-				<p class="text-lightgrey-500 font-semibold">Transfer Progress: {progressPercentage}%</p>
+		<div
+			class="sm:w-1/2 w-full mx-auto mt-10 bg-white shadow-lg rounded-lg overflow-hidden"
+		>
+			<div class="py-4 px-6">
+				<h2 class="text-2xl font-bold text-gray-700">Submitted</h2>
+				<p class="py-2 text-gray-700 font-semibold">
+					From: <span class="font-normal">{fromAccount}</span>
+				</p>
+				<p class="py-2 text-gray-700 font-semibold">
+					To: <span class="font-normal">{toAccount}</span>
+				</p>
+				<p class="py-2 text-gray-700 font-semibold">
+					Amount: <span class="font-normal">${amount}</span>
+				</p>
+			</div>
+			<div class="py-4 px-6">
+				{#if failed}
+					<p class="text-red-500 font-semibold">
+						Transfer failed. Please try again later.
+					</p>
+					<!-- <p class="text-gray-400 text-sm">
+						Confirmation: {chargeId}
+					</p> -->
+				{:else if progressPercentage === 100}
+					<p class="text-green-500 font-semibold">
+						Transfer complete!
+					</p>
+					<p class="text-gray-400 text-sm">
+						Confirmation: {chargeId}
+					</p>
+				{:else if progressPercentage < 100}
+						<p class="text-lightgrey-500 font-semibold">
+							Transfer Progress: {progressPercentage}%
+						</p>
 
-				<div class="progress-bar">
-					<div class="progress" style="width: {progressPercentage}%;">
-					</div>
-				</div>
-			{/if}
-		</div>		
-		<div class="px-6 py-3 bg-gray-100 text-right">
-			<p class="text-gray-400 text-sm">{transferId}</p>
+						<div class="progress-bar">
+							<div
+								class="progress"
+								style="width: {progressPercentage}%;"
+							/>
+						</div>
+				{/if}
+			</div>
+			<div class="px-6 py-3 bg-gray-100 text-right">
+				<p class="text-gray-400 text-sm">{transferId}</p>
+			</div>
 		</div>
-	</div>
-	
 	{/if}
 </section>

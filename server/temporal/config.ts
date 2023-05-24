@@ -6,7 +6,8 @@ export interface ConfigObj {
     certContent: string,
     keyContent: string,
     address: string,
-    namespace: string
+    namespace: string,
+    stripeSecretKey: string
 }
 
 // function that returns a ConfigObj with input environment variables
@@ -17,7 +18,8 @@ export function getConfig(): ConfigObj {
         certContent: process.env.CERT_CONTENT || '',
         keyContent: process.env.KEY_CONTENT || '',
         address: process.env.ADDRESS || 'localhost:7233',
-        namespace: process.env.NAMESPACE || 'default'
+        namespace: process.env.NAMESPACE || 'default',
+        stripeSecretKey: process.env.STRIPE_SECRET_KEY || ''
     }
 }
 
@@ -25,7 +27,7 @@ export function getConfig(): ConfigObj {
 
 export function initWorkflowParameterObj(): WorkflowParameterObj {
     return {
-      testarg: 'testarg'
+      amountCents: 0
     }
 }
 

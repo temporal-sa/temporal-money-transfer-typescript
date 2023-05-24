@@ -63,6 +63,13 @@ kubectl create secret generic temporal-EXAMPLE-tls \
     --from-file=tls.key=/path/to/your/tls.key
 ```
 
+For stripe API key
+
+```
+kubectl create secret generic stripe-secret-key \
+--from-literal=ADDRESS=sk_test_51NBOLuK...ToFliz
+```
+
 - Edit the yaml files to ensure your environment variables are correct (e.g. namespace and address).
 
 ```
@@ -71,6 +78,11 @@ kubectl apply -f deployments/server-deployment.yaml
 kubectl apply -f deployments/ui-deployment.yaml
 kubectl apply -f services/server-service.yaml
 kubectl apply -f services/ui-service.yaml
+```
+
+If you want workers
+```
+kubectl apply -f deployments/worker-deployment.yaml
 ```
 
 

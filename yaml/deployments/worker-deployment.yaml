@@ -29,6 +29,11 @@ spec:
               value: /etc/certs/tls.key
             - name: NODE_ENV
               value: production
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: stripe-secret-key
+                  key: STRIPE_SECRET_KEY
           volumeMounts:
             - mountPath: /etc/certs
               name: certs
@@ -48,6 +53,11 @@ spec:
               value: /etc/certs/tls.key
             - name: NODE_ENV
               value: production
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: stripe-secret-key
+                  key: STRIPE_SECRET_KEY
           volumeMounts:
             - mountPath: /etc/certs
               name: certs

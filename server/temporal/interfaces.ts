@@ -1,12 +1,17 @@
 export interface WorkflowParameterObj {
-    testarg: string;
+    amountCents: number;
 }
 
 export interface ResultObj {
-    testActivityResult: string;
+    stripeChargeResponse: StripeChargeResponse;
 }
 
 export interface StateObj {
     progressPercentage: number;
-    state: string;
+    transferState: string;
+    workflowStatus?: string;
 }
+
+export type StripeChargeResponse = {
+    chargeId: string;
+  }  
