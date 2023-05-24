@@ -13,44 +13,6 @@ spec:
         app: temporal-money-transfer-server
     spec:
       containers:
-        - name: worker-workflow
-          image: 429214323166.dkr.ecr.us-east-2.amazonaws.com/temporal-moneytransfer-worker:latest
-          imagePullPolicy: Always
-          env:
-            - name: WORKER_TYPE
-              value: workflow
-            - name: ADDRESS
-              value: steveandroulakis-test-1.sdvdw.tmprl.cloud:7233
-            - name: NAMESPACE
-              value: steveandroulakis-test-1.sdvdw
-            - name: CERT_PATH
-              value: /etc/certs/tls.crt
-            - name: KEY_PATH
-              value: /etc/certs/tls.key
-            - name: NODE_ENV
-              value: production
-          volumeMounts:
-            - mountPath: /etc/certs
-              name: certs
-        - name: worker-activity
-          image: 429214323166.dkr.ecr.us-east-2.amazonaws.com/temporal-moneytransfer-worker:latest
-          imagePullPolicy: Always
-          env:
-            - name: WORKER_TYPE
-              value: activity
-            - name: ADDRESS
-              value: steveandroulakis-test-1.sdvdw.tmprl.cloud:7233
-            - name: NAMESPACE
-              value: steveandroulakis-test-1.sdvdw
-            - name: CERT_PATH
-              value: /etc/certs/tls.crt
-            - name: KEY_PATH
-              value: /etc/certs/tls.key
-            - name: NODE_ENV
-              value: production
-          volumeMounts:
-            - mountPath: /etc/certs
-              name: certs
         - name: server
           image: 429214323166.dkr.ecr.us-east-2.amazonaws.com/temporal-moneytransfer-server:latest
           imagePullPolicy: Always
