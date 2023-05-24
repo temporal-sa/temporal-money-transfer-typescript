@@ -14,9 +14,6 @@ export async function getCertKeyBuffers(config: ConfigObj) {
     cert = Buffer.from(config.certContent, 'utf8');
     key = Buffer.from(config.keyContent, 'utf8');
   }
-  else {
-    throw new Error("no certificate files or content found, please provide certificate files or content");
-  }
 
   return {
     cert: cert,

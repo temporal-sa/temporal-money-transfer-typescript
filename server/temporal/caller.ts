@@ -17,15 +17,23 @@ async function createClient(config: ConfigObj): Promise<Client> {
 
   let connectionOptions = {};
 
-  connectionOptions = {
-    address: config.address,
-    tls: {
-      clientCertPair: {
-        crt: cert,
-        key: key,
+  // if cert and key are null
+  if (cert === null && key === null) {
+    connectionOptions = {
+      address: config.address
+    };
+  }
+  else {
+    connectionOptions = {
+      address: config.address,
+      tls: {
+        clientCertPair: {
+          crt: cert,
+          key: key,
+        },
       },
-    },
-  };
+    };
+  }
 
   console.log("About to connect to Temporal server...");
 

@@ -23,18 +23,27 @@ async function run() {
 
   const { cert, key } = await getCertKeyBuffers(configObj);
 
-  const connection = await NativeConnection.connect({
-    // defaults port to 7233 if not specified
-    address: configObj.address,
-    tls: {
-      // set to true if TLS without mTLS
-      // See docs for other TLS options
-      clientCertPair: {
-        crt: cert,
-        key: key,
+  let connectionOptions = {};
+
+  // if cert and key are null
+  if (cert === null && key === null) {
+    connectionOptions = {
+      address: configObj.address
+    };
+  }
+  else {
+    connectionOptions = {
+      address: configObj.address,
+      tls: {
+        clientCertPair: {
+          crt: cert,
+          key: key,
+        },
       },
-    },
-  });
+    };
+  }
+
+  const connection = await NativeConnection.connect(connectionOptions);
 
   const worker = await Worker.create({
     connection: connection,
