@@ -5,3 +5,8 @@ export interface WorkflowParameterObj {
 export interface ResultObj {
     testActivityResult: string;
 }
+
+export interface StateObj {
+    progressPercentage: number;
+    state: string;
+}

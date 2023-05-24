@@ -57,13 +57,11 @@ app.post('/runQuery', async (req: Request, res: Response) => {
 
     const config = getConfig();
 
-    const state = await runQuery(config, workflowId);
+    const transferState = await runQuery(config, workflowId);
 
-    console.log(`state: ${state}`);
+    console.log(`state: ${transferState}`);
 
-    res.send({
-        state: state
-    });
+    res.send(transferState);
 
 });
 

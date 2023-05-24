@@ -1,6 +1,6 @@
 import { Client, Connection } from '@temporalio/client';
 import fs from 'fs-extra';
-import { ResultObj, WorkflowParameterObj } from './interfaces';
+import { ResultObj, StateObj, WorkflowParameterObj } from './interfaces';
 import { TASK_QUEUE_WORKFLOW } from './config';
 import { nanoid } from 'nanoid';
 import { getStateQuery, moneyTransferWorkflow } from './workflows';
@@ -73,7 +73,7 @@ export async function runWorkflow(config: ConfigObj, workflowParameterObj: Workf
 
 }
 
-export async function runQuery(config: ConfigObj, workflowId: string): Promise<number> {
+export async function runQuery(config: ConfigObj, workflowId: string): Promise<StateObj> {
 
   const client = await createClient(config);
 

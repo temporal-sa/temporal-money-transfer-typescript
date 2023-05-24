@@ -57,9 +57,13 @@
 			if (transferId === "") {
 				return;
 			}
+			if (transferState.state === "finished") {
+				return;
+			}
 			transferState = await getWorkflowState();
-			progressPercentage = transferState.state;
-		}, 5000);
+			progressPercentage = transferState.progressPercentage;
+			console.log("transferState: ", transferState);
+		}, 2000);
 
 		return () => {
 			clearInterval(intervalId);

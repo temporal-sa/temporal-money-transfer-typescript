@@ -1,7 +1,7 @@
 import {
   proxyActivities, setHandler, sleep
 } from '@temporalio/workflow';
-import { ResultObj, WorkflowParameterObj } from './interfaces';
+import { ResultObj, StateObj, WorkflowParameterObj } from './interfaces';
 import { TASK_QUEUE_ACTIVITY } from './config';
 import { defineQuery } from '@temporalio/workflow';
 
@@ -12,20 +12,25 @@ const { testActivity } = proxyActivities<typeof activities>({
   startToCloseTimeout: '1 minute',
 });
 
-export const getStateQuery = defineQuery<number>('getState');
+export const getStateQuery = defineQuery<StateObj>('getState');
 
 
 /** A workflow that simply calls an activity */
 export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParameterObj): Promise<ResultObj> {
 
-  let state = 25;
-  setHandler(getStateQuery, () => state);
+  let progressPercentage = 25;
+  let state = "starting";
+  setHandler(getStateQuery, () => ({
+    progressPercentage: progressPercentage,
+    state: state
+  }));
 
   let resultObj: ResultObj = { testActivityResult: '' };
 
   await sleep('5 seconds');
 
-  state = 75;
+  progressPercentage = 75;
+  state = "running";
 
   const activityResult = await testActivity('test');
 
@@ -33,7 +38,8 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
 
   await sleep('5 seconds');
 
-  state = 100;
+  progressPercentage = 100;
+  state = "finished";
 
   return resultObj
 }
