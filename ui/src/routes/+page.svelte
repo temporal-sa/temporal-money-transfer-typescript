@@ -73,7 +73,7 @@
 	<Loading title="" />
 	<h2 class="text-2xl flex items-center gap-1">Transfer Money</h2>
 	{#if !transferSubmitted}
-		<div class="sm:w-1/2 w-full border-gray-200 p-4 rounded-md">
+		<div class="sm:w-1/2 w-full border border-gray-200 p-4 rounded-md">
 			<label
 				for="from-account"
 				class="block text-sm font-medium text-gray-700"
@@ -89,7 +89,7 @@
 				{/each}
 			</select>
 		</div>
-		<div class="sm:w-1/2 w-full border-gray-200 p-4 rounded-md">
+		<div class="sm:w-1/2 w-full border border-gray-200 p-4 rounded-md">
 			<label
 				for="to-account"
 				class="block text-sm font-medium text-gray-700"
@@ -105,7 +105,7 @@
 				{/each}
 			</select>
 		</div>
-		<div class="sm:w-1/2 w-full border-gray-200 p-4 rounded-md">
+		<div class="sm:w-1/2 w-full border border-gray-200 p-4 rounded-md">
 			<label for="amount" class="block text-sm font-medium text-gray-700"
 				>Amount (In USD)</label
 			>
