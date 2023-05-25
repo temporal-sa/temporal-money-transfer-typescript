@@ -1,0 +1,16 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: tmprl-sa-cloud-staging
+  namespace: temporal-money-transfer
+spec:
+  secretName: tls-cert-tmprl-sa-cloud-staging
+  privateKey:
+    rotationPolicy: Always
+  dnsNames:
+  - transfer.tmprl-sa.cloud
+  - transferapi.tmprl-sa.cloud
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
+    group: cert-manager.io
