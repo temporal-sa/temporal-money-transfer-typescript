@@ -11,6 +11,7 @@ spec:
     metadata:
       labels:
         app: temporal-money-transfer-worker
+        namespace: temporal-money-transfer
     spec:
       containers:
         - name: worker-workflow
