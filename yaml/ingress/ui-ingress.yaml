@@ -1,0 +1,19 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: temporal-money-transfer-ui-ingress
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - kind: Rule
+    match: Host(`transfer.tmprl-sa.cloud`)
+    services:
+    - name: temporal-money-transfer-ui-service
+      namespace: default
+      passHostHeader: true
+      port: 80
+      responseForwarding:
+        flushInterval: 100ms
+  tls:
+    secretName: tls-cert-tmprl-sa-cloud
