@@ -5,6 +5,7 @@
 	import Loading from "@temporalio/ui/holocene/loading.svelte";
 	import PageTitle from "@temporalio/ui/components/page-title.svelte";
 	import Button from "@temporalio/ui/holocene/button.svelte";
+	import githubMark from '../github-mark.svg'
 
 	console.log("API url grabbed from .env: ", import.meta.env.VITE_API_URL);
 	const API_URL = import.meta.env.VITE_API_URL;
@@ -160,7 +161,7 @@
 			<Button on:click={transferMoney}>Transfer</Button>
 		</div>
 		<h6><a href="https://github.com/steveandroulakis/temporal-money-transfer" target="_blank">
-			<img src="src/static/github-mark.svg" alt="Source Code" class="w-8 h-auto"></a>
+			<img src="{githubMark}" alt="Source Code" class="w-8 h-auto"></a>
 		</h6>
 	{:else}
 		<div
