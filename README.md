@@ -1,6 +1,5 @@
 ## Temporal API and UI example
-http://server3000-9237260.us-east-2.elb.amazonaws.com/
-(AWS ECS)
+https://transfer.tmprl-sa.cloud/
 
 - TODO, coherent instructions!
 
