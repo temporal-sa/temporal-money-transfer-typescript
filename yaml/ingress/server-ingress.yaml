@@ -17,4 +17,4 @@ spec:
       responseForwarding:
         flushInterval: 100ms
   tls:
-    secretName: tmprl-sa-cloud-staging
+    secretName: tls-cert-tmprl-sa-cloud-server-staging
