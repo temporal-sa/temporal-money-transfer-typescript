@@ -78,6 +78,9 @@ kubectl apply -f deployments/server-deployment.yaml
 kubectl apply -f deployments/ui-deployment.yaml
 kubectl apply -f services/server-service.yaml
 kubectl apply -f services/ui-service.yaml
+kubectl apply -f certificates/certificate.yaml
+kubectl apply -f ingress/server-ingress.yaml
+kubectl apply -f ingress/ui-ingress.yaml
 ```
 
 If you want workers
