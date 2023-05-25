@@ -159,6 +159,9 @@
 		<div class="">
 			<Button on:click={transferMoney}>Transfer</Button>
 		</div>
+		<h6><a href="https://github.com/steveandroulakis/temporal-money-transfer" target="_blank">
+			<img src="src/static/github-mark.svg" alt="Source Code" class="w-8 h-auto"></a>
+		</h6>
 	{:else}
 		<div
 			class="sm:w-1/2 w-full mx-auto mt-10 bg-white shadow-lg rounded-lg overflow-hidden"
