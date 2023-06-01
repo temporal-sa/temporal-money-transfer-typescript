@@ -53,6 +53,23 @@ app.post('/runWorkflow', async (req: Request, res: Response) => {
     });
 });
 
+// runWorkflow API
+app.get('/testConnect', async (req: Request, res: Response) => {
+
+    const config = getConfig();
+
+    const workflowParameterObj = initWorkflowParameterObj();
+
+    // form takes input as dollars, convert to cents
+    workflowParameterObj.amountCents = 55 * 100;
+
+    const transferId = await runWorkflow(config, workflowParameterObj);
+
+    res.send({
+        transferId: transferId
+    });
+});
+
 app.post('/getWorkflowOutcome', async (req: Request, res: Response) => {
 
     if (!req.body.workflowId) {

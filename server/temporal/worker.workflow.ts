@@ -8,6 +8,7 @@ import { getCertKeyBuffers } from './certificate_helpers';
 const path = process.env.NODE_ENV === 'production'
   ? resolve(__dirname, './.env.production')
   : resolve(__dirname, './.env.development');
+import { Runtime } from '@temporalio/worker';
 
 config({ path });
 
@@ -19,7 +20,20 @@ console.log(configtest.certPath);
 
 const configObj = getConfig();
 
+// log prometheusAddress
+console.log(`Prometheus config address: ${configObj.prometheusAddress}`);
+
 async function run() {
+
+  Runtime.install({
+    telemetryOptions: {
+      metrics: {
+        prometheus: {
+          bindAddress: configObj.prometheusAddress,
+        },
+      },
+    },
+  })
 
   const { cert, key } = await getCertKeyBuffers(configObj);
 

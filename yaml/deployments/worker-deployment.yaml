@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: temporal-money-transfer-worker
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: temporal-money-transfer-worker
@@ -15,55 +15,24 @@ spec:
     spec:
       containers:
         - name: worker-workflow
-          image: 429214323166.dkr.ecr.us-east-2.amazonaws.com/temporal-moneytransfer-worker:latest
+          image: steveandroulakis/temporal-moneytransfer-worker:latest
           imagePullPolicy: Always
           env:
             - name: WORKER_TYPE
               value: workflow
             - name: ADDRESS
-              value: steveandroulakis-test-1.sdvdw.tmprl.cloud:7233
+              value: temporal-server-frontend-headless.stevea-temporal-server:7233
             - name: NAMESPACE
-              value: steveandroulakis-test-1.sdvdw
-            - name: CERT_PATH
-              value: /etc/certs/tls.crt
-            - name: KEY_PATH
-              value: /etc/certs/tls.key
+              value: default
             - name: NODE_ENV
               value: production
+            - name: PROMETHEUS_ADDRESS
+              value: 0.0.0.0:9090
             - name: STRIPE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: stripe-secret-key
                   key: STRIPE_SECRET_KEY
-          volumeMounts:
-            - mountPath: /etc/certs
-              name: certs
-        - name: worker-activity
-          image: 429214323166.dkr.ecr.us-east-2.amazonaws.com/temporal-moneytransfer-worker:latest
-          imagePullPolicy: Always
-          env:
-            - name: WORKER_TYPE
-              value: activity
-            - name: ADDRESS
-              value: steveandroulakis-test-1.sdvdw.tmprl.cloud:7233
-            - name: NAMESPACE
-              value: steveandroulakis-test-1.sdvdw
-            - name: CERT_PATH
-              value: /etc/certs/tls.crt
-            - name: KEY_PATH
-              value: /etc/certs/tls.key
-            - name: NODE_ENV
-              value: production
-            - name: STRIPE_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: stripe-secret-key
-                  key: STRIPE_SECRET_KEY
-          volumeMounts:
-            - mountPath: /etc/certs
-              name: certs
-      volumes:
-        - name: certs
-          secret:
-            defaultMode: 420
-            secretName: temporal-money-transfer-tls
+          ports:
+            - name: metrics
+              containerPort: 9090

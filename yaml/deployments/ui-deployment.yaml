@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: ui
-        image: 429214323166.dkr.ecr.us-east-2.amazonaws.com/temporal-moneytransfer-ui:latest
+        image: steveandroulakis/temporal-moneytransfer-ui:latest
         imagePullPolicy: Always
         ports:
         - name: ui

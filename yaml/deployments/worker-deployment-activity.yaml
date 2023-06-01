@@ -1,36 +1,38 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: temporal-money-transfer-server
-  namespace: temporal-money-transfer
+  name: temporal-money-transfer-worker-activity
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: temporal-money-transfer-server
+      app: temporal-money-transfer-worker-activity
   template:
     metadata:
       labels:
-        app: temporal-money-transfer-server
+        app: temporal-money-transfer-worker-activity
+        namespace: temporal-money-transfer
     spec:
       containers:
-        - name: server
-          image: steveandroulakis/temporal-moneytransfer-server:latest
+        - name: worker-workflow
+          image: steveandroulakis/temporal-moneytransfer-worker:latest
           imagePullPolicy: Always
-          ports:
-            - name: server
-              containerPort: 3000
           env:
+            - name: WORKER_TYPE
+              value: activity
             - name: ADDRESS
               value: temporal-server-frontend-headless.stevea-temporal-server:7233
             - name: NAMESPACE
               value: default
             - name: NODE_ENV
               value: production
-            - name: PORT
-              value: "3000"
+            - name: PROMETHEUS_ADDRESS
+              value: 0.0.0.0:9090
             - name: STRIPE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: stripe-secret-key
                   key: STRIPE_SECRET_KEY
+          ports:
+            - name: metrics
+              containerPort: 9090

@@ -5,10 +5,10 @@ metadata:
   namespace: temporal-money-transfer
 spec:
   entryPoints:
-  - websecure
+  - web
   routes:
   - kind: Rule
-    match: Host(`transfer.tmprl-sa.cloud`)
+    match: Host(`transfer.localhost`)
     services:
     - name: temporal-money-transfer-ui-service
       namespace: temporal-money-transfer
@@ -16,5 +16,3 @@ spec:
       port: 80
       responseForwarding:
         flushInterval: 100ms
-  tls:
-    secretName: tls-cert-tmprl-sa-cloud-ui

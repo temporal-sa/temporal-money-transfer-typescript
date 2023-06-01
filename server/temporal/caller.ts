@@ -17,6 +17,10 @@ async function createClient(config: ConfigObj): Promise<Client> {
 
   let connectionOptions = {};
 
+  // give information on config address, cert and key
+  console.log(`Config address: ${config.address}`);
+  console.log(`Config cert: ${config.certPath}`);
+
   // if cert and key are null
   if (cert === null && key === null) {
     connectionOptions = {
