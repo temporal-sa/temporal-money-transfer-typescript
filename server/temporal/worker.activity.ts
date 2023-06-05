@@ -25,15 +25,18 @@ console.log(`Prometheus config address: ${configObj.prometheusAddress}`);
 
 async function run() {
 
-  Runtime.install({
-    telemetryOptions: {
-      metrics: {
-        prometheus: {
-          bindAddress: configObj.prometheusAddress,
+  // if configObj.prometheusAddress is not null or empty
+  if (configObj.prometheusAddress) {
+    Runtime.install({
+      telemetryOptions: {
+        metrics: {
+          prometheus: {
+            bindAddress: configObj.prometheusAddress,
+          },
         },
       },
-    },
-  })
+    })
+  }
 
   const { cert, key } = await getCertKeyBuffers(configObj);
 
