@@ -4,6 +4,11 @@ import express, { Request, Response } from 'express';
 import { initWorkflowParameterObj } from './temporal/config';
 import { getConfig } from "./temporal/config";
 import bodyParser from "body-parser";
+const { PrometheusExporter } = require("@opentelemetry/exporter-prometheus");
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
+import { Resource } from '@opentelemetry/resources';
+import { Runtime } from '@temporalio/worker';
 
 const path = process.env.NODE_ENV === 'production'
     ? resolve(__dirname, './.env.production')
@@ -11,9 +16,9 @@ const path = process.env.NODE_ENV === 'production'
 
 config({ path });
 
-const configtest = getConfig();
+const configObj = getConfig();
 console.log(process.env.NODE_ENV);
-console.log(configtest.certPath);
+console.log(configObj.certPath);
 
 // TEMPORARY: Allow CORS for all origins
 import cors from 'cors';
@@ -104,6 +109,36 @@ app.post('/runQuery', async (req: Request, res: Response) => {
 
 });
 
-app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
+const resource = new Resource({
+    [SemanticResourceAttributes.SERVICE_NAME]: 'interceptors-temporal-money-transfer',
+});
+
+const exporter = new PrometheusExporter({
+    startServer: true,
+    port: 9090,
+}, () => {
+    console.log(`Prometheus scrape endpoint running at http://localhost:9090/metrics`);
+});
+
+const otel = new NodeSDK({ metricReader: exporter, resource: resource });
+
+async function start() {
+    await otel.start();
+    app.listen(port, () => {
+        console.log(`Example app listening at http://localhost:${port}`);
+    });
+}
+
+// Start the OpenTelemetry SDK and Express application
+if (configObj.prometheusAddress) {
+    console.log("Starting OpenTelemetry SDK")
+    start();
+}
+
+
+// Remember to shut down when application is done
+process.on('SIGTERM', () => {
+    if (configObj.prometheusAddress) {
+        otel.shutdown().then(() => console.log('OpenTelemetry SDK shut down.'));
+    }
 });

@@ -70,40 +70,6 @@ async function createClient(config: ConfigObj): Promise<Client> {
 
 export async function runWorkflow(config: ConfigObj, workflowParameterObj: WorkflowParameterObj): Promise<String> {
 
-  if (config.prometheusAddress) {
-    const resource = new Resource({
-      [SemanticResourceAttributes.SERVICE_NAME]: 'interceptors-temporal-money-transfer',
-    });
-    // Export spans to console for simplicity
-    const exporter = new ConsoleSpanExporter();
-
-    const otel = new NodeSDK({ traceExporter: exporter, resource });
-    await otel.start();
-
-    const client = await createClient(config);
-
-    const transferId = 'transfer-' + nanoid();
-
-    try {
-      // start() returns a WorkflowHandle that can be used to await the result
-      const result = await client.workflow.execute(moneyTransferWorkflow, {
-        // type inference works! args: [name: string]
-        args: [workflowParameterObj],
-        taskQueue: TASK_QUEUE_WORKFLOW,
-        // in practice, use a meaningful business ID, like customerId or transactionId
-        workflowId: transferId
-      });
-
-      await client.connection.close();
-
-      return transferId;
-    } finally {
-      await otel.shutdown();
-    }
-  }
-  else {
-    // non metrics path
-    // TODO UGH this is so ugly, clean up
     const client = await createClient(config);
 
     const transferId = 'transfer-' + nanoid();
@@ -120,13 +86,10 @@ export async function runWorkflow(config: ConfigObj, workflowParameterObj: Workf
     await client.connection.close();
 
     return transferId;
-  }
 
   // don't wait for workflow to finish
   // let result = await handle.result()
   // console.log(result); // Hello, Temporal!
-
-
 
 }
 
