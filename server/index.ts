@@ -4,11 +4,11 @@ import express, { Request, Response } from 'express';
 import { initWorkflowParameterObj } from './temporal/config';
 import { getConfig } from "./temporal/config";
 import bodyParser from "body-parser";
-const { PrometheusExporter } = require("@opentelemetry/exporter-prometheus");
-import { NodeSDK } from '@opentelemetry/sdk-node';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 import { Resource } from '@opentelemetry/resources';
-import { Runtime } from '@temporalio/worker';
+import opentelemetry, { NodeSDK } from "@opentelemetry/sdk-node";
+import { PrometheusExporter } from "@opentelemetry/exporter-prometheus";
+import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
 
 const path = process.env.NODE_ENV === 'production'
     ? resolve(__dirname, './.env.production')
@@ -113,32 +113,39 @@ const resource = new Resource({
     [SemanticResourceAttributes.SERVICE_NAME]: 'interceptors-temporal-money-transfer',
 });
 
-const exporter = new PrometheusExporter({
-    startServer: true,
+const prometheusExporter = new PrometheusExporter({
     port: 9090,
-}, () => {
-    console.log(`Prometheus scrape endpoint running at http://localhost:9090/metrics`);
+    endpoint: '/metrics'
 });
 
-const otel = new NodeSDK({ metricReader: exporter, resource: resource });
+const sdk = new NodeSDK({
+    // Optional - If omitted, the metrics SDK will not be initialized
+    metricReader: prometheusExporter,
+    // Optional - you can use the metapackage or load each instrumentation individually
+    instrumentations: [getNodeAutoInstrumentations()],
+    // See the Configuration section below for additional  configuration options
+    resource: resource
+});
 
 async function start() {
-    await otel.start();
+    // Start the OpenTelemetry SDK and Express application
+    if (configObj.prometheusAddress) {
+        console.log("Starting OpenTelemetry SDK")
+        await sdk.start();
+    }
     app.listen(port, () => {
         console.log(`Example app listening at http://localhost:${port}`);
     });
 }
 
-// Start the OpenTelemetry SDK and Express application
-if (configObj.prometheusAddress) {
-    console.log("Starting OpenTelemetry SDK")
-    start();
-}
+
+start();
+
 
 
 // Remember to shut down when application is done
 process.on('SIGTERM', () => {
     if (configObj.prometheusAddress) {
-        otel.shutdown().then(() => console.log('OpenTelemetry SDK shut down.'));
+        sdk.shutdown().then(() => console.log('OpenTelemetry SDK shut down.'));
     }
 });

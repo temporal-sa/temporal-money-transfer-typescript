@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: temporal-money-transfer-worker-activity
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: temporal-money-transfer-worker-activity
+  template:
+    metadata:
+      labels:
+        app: temporal-money-transfer-worker-activity
+        namespace: temporal-money-transfer
+    spec:
+      containers:
+        - name: worker-workflow
+          image: steveandroulakis/temporal-moneytransfer-worker:latest
+          imagePullPolicy: Always
+          env:
+            - name: WORKER_TYPE
+              value: activity
+            - name: ADDRESS
+              value: steveandroulakis-test-1.sdvdw.tmprl.cloud:7233
+            - name: NAMESPACE
+              value: steveandroulakis-test-1.sdvdw
+            - name: CERT_PATH
+              value: /etc/certs/tls.crt
+            - name: KEY_PATH
+              value: /etc/certs/tls.key
+            - name: NODE_ENV
+              value: production
+            - name: PROMETHEUS_ADDRESS
+              value: 0.0.0.0:9090
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: stripe-secret-key
+                  key: STRIPE_SECRET_KEY
+          ports:
+            - name: metrics
+              containerPort: 9090
+          volumeMounts:
+            - mountPath: /etc/certs
+              name: certs
+      volumes:
+        - name: certs
+          secret:
+            defaultMode: 420
+            secretName: temporal-money-transfer-tls

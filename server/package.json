@@ -12,8 +12,11 @@
     "license": "ISC",
     "dependencies": {
         "@opentelemetry/api": "^1.4.1",
+        "@opentelemetry/auto-instrumentations-node": "^0.37.0",
         "@opentelemetry/core": "^1.8.0",
+        "@opentelemetry/exporter-jaeger": "^1.14.0",
         "@opentelemetry/exporter-prometheus": "^0.40.0",
+        "@opentelemetry/instrumentation-http": "^0.40.0",
         "@opentelemetry/propagator-jaeger": "^1.13.0",
         "@opentelemetry/resources": "^1.8.0",
         "@opentelemetry/sdk-node": "^0.40.0",

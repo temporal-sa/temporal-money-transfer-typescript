@@ -1,4 +1,4 @@
-import { Client, Connection, WorkflowFailedError } from '@temporalio/client';
+import { Client, ClientInterceptors, Connection, WorkflowFailedError } from '@temporalio/client';
 import fs from 'fs-extra';
 import { ResultObj, StateObj, WorkflowParameterObj } from './interfaces';
 import { TASK_QUEUE_WORKFLOW } from './config';
@@ -50,18 +50,13 @@ async function createClient(config: ConfigObj): Promise<Client> {
 
   const connection = await Connection.connect(connectionOptions);
 
-  let interceptors = {}
-
-  if (config.prometheusAddress) {
-    interceptors = {
-      workflow: [new OpenTelemetryWorkflowClientInterceptor()],
-    }
-  }
-
+  console.log("Using OpenTelemetryWorkflowClientInterceptor()");
   const client = new Client({
     connection,
     namespace: config.namespace,
-    interceptors: interceptors
+    interceptors: {
+      workflow: [new OpenTelemetryWorkflowClientInterceptor()]
+    },
     // dataConverter: await getDataConverter()
   });
 
