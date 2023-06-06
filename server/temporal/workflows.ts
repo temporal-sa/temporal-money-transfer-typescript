@@ -1,10 +1,13 @@
 import {
-  proxyActivities, setHandler, sleep, uuid4
+  proxyActivities, setHandler, sleep, uuid4, WorkflowInterceptorsFactory
 } from '@temporalio/workflow';
 import { ResultObj, StateObj, StripeChargeResponse, WorkflowParameterObj } from './interfaces';
 import { TASK_QUEUE_ACTIVITY } from './config';
 import { defineQuery } from '@temporalio/workflow';
-import Stripe from 'stripe';
+import {
+  OpenTelemetryInboundInterceptor,
+  OpenTelemetryOutboundInterceptor,
+} from '@temporalio/interceptors-opentelemetry/lib/workflow';
 
 import type * as activities from './activities';
 
@@ -48,3 +51,9 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
   return { stripeChargeResponse: chargeResult };
 
 }
+
+// Export the interceptors
+export const interceptors: WorkflowInterceptorsFactory = () => ({
+  inbound: [new OpenTelemetryInboundInterceptor()],
+  outbound: [new OpenTelemetryOutboundInterceptor()],
+});

@@ -6,8 +6,8 @@ import { getConfig } from "./temporal/config";
 import bodyParser from "body-parser";
 
 const path = process.env.NODE_ENV === 'production'
-  ? resolve(__dirname, './.env.production')
-  : resolve(__dirname, './.env.development');
+    ? resolve(__dirname, './.env.production')
+    : resolve(__dirname, './.env.development');
 
 config({ path });
 
@@ -73,7 +73,7 @@ app.get('/testConnect', async (req: Request, res: Response) => {
 app.post('/getWorkflowOutcome', async (req: Request, res: Response) => {
 
     if (!req.body.workflowId) {
-        return res.send({"message": "workflowId is required"});
+        return res.send({ "message": "workflowId is required" });
     }
 
     // get workflowId from request POST body
