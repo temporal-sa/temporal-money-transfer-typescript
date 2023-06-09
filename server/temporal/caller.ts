@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid';
 import { getStateQuery, moneyTransferWorkflow } from './workflows';
 import { ConfigObj } from './config';
 import { getCertKeyBuffers } from './certificate_helpers';
+import { getDataConverter } from './data-converter';
 
 async function createClient(config: ConfigObj): Promise<Client> {
 
@@ -42,7 +43,7 @@ async function createClient(config: ConfigObj): Promise<Client> {
   const client = new Client({
     connection,
     namespace: config.namespace,
-    // dataConverter: await getDataConverter()
+    dataConverter: await getDataConverter()
   });
 
   return client;

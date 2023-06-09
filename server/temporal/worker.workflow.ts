@@ -4,6 +4,7 @@ import { NativeConnection, Worker } from '@temporalio/worker';
 import * as activities from './activities';
 import { getConfig, TASK_QUEUE_WORKFLOW } from './config';
 import { getCertKeyBuffers } from './certificate_helpers';
+import { getDataConverter } from './data-converter';
 
 const path = process.env.NODE_ENV === 'production'
   ? resolve(__dirname, './.env.production')
@@ -51,7 +52,7 @@ async function run() {
     activities: activities,
     namespace: configObj.namespace,
     taskQueue: TASK_QUEUE_WORKFLOW,
-    // dataConverter: await getDataConverter(),
+    dataConverter: await getDataConverter(),
     enableNonLocalActivities: false
   });
   await worker.run();
