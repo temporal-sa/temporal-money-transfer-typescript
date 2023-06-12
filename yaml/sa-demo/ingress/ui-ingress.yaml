@@ -5,7 +5,7 @@ metadata:
   namespace: temporal-money-transfer
 spec:
   entryPoints:
-  - web
+  - websecure
   routes:
   - kind: Rule
     match: Host(`transfer.tmprl-demo.cloud`)
@@ -16,3 +16,5 @@ spec:
       port: 80
       responseForwarding:
         flushInterval: 100ms
+  tls:
+    secretName: tmprl-demo-cloud-ui-tls
