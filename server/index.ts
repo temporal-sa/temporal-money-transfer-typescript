@@ -40,6 +40,23 @@ app.get('/health', (req, res) => {
     res.send(`OK`);
 });
 
+app.get('/serverinfo', (req, res) => {
+
+    const serverconfig = {
+        address: configtest.address,
+        namespace: configtest.namespace,
+        url: ''
+    }
+
+    // if address ends in .tmprl.cloud:7233
+    if (serverconfig.address.endsWith('.tmprl.cloud:7233')) {
+        // strip port from address
+        serverconfig.url = `https://cloud.temporal.io/namespaces/${serverconfig.namespace}/workflows`;
+    }
+
+    res.json(serverconfig);
+});
+
 // runWorkflow API
 app.post('/runWorkflow', async (req: Request, res: Response) => {
 
