@@ -4,7 +4,7 @@ metadata:
   name: tmprl-demo-cloud-server
 spec:
   dnsNames:
-  - transferapi.tmprl-demo.cloud
+  - transfer.tmprl-demo.cloud
   issuerRef:
     group: cert-manager.io
     kind: ClusterIssuer
@@ -12,19 +12,3 @@ spec:
   privateKey:
     rotationPolicy: Always
   secretName: tmprl-demo-cloud-server-tls
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: tmprl-demo-cloud-ui
-  namespace: temporal-money-transfer
-spec:
-  secretName: tmprl-demo-cloud-ui-tls
-  privateKey:
-    rotationPolicy: Always
-  dnsNames:
-  - transfer.tmprl-demo.cloud
-  issuerRef:
-    name: letsencrypt
-    kind: ClusterIssuer
-    group: cert-manager.io

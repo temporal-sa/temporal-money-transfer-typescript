@@ -1,10 +1,9 @@
 {
     "watch": ["."],
     "ext": "ts,.ts,.js,.svelte,.md,.css",
-    "exec": ["ts-node ./server/index.ts"],
-    "ignore": ["**/*.spec.ts"],
+    "exec": ["cd server && npm run start"],
+    "ignore": ["**/*.spec.ts", "server/build/**/*", "ui/.svelte-kit/**/*"],
     "env": {
       "NODE_ENV": "development"
     }
-  }
-  
+}
