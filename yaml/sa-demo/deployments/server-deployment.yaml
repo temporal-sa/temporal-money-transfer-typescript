@@ -24,9 +24,9 @@ spec:
               containerPort: 9090
           env:
             - name: ADDRESS
-              value: steveandroulakis-test-1.sdvdw.tmprl.cloud:7233
+              value: helloworld.sdvdw.tmprl.cloud:7233
             - name: NAMESPACE
-              value: steveandroulakis-test-1.sdvdw
+              value: helloworld.sdvdw
             - name: CERT_PATH
               value: /etc/certs/tls.crt
             - name: KEY_PATH
@@ -51,4 +51,4 @@ spec:
         - name: certs
           secret:
             defaultMode: 420
-            secretName: temporal-money-transfer-tls
+            secretName: temporal-money-transfer-tls-helloworld

@@ -5,7 +5,7 @@
 	import Loading from "@temporalio/ui/holocene/loading.svelte";
 	import PageTitle from "@temporalio/ui/components/page-title.svelte";
 	import Button from "@temporalio/ui/holocene/button.svelte";
-	import githubMark from '../github-mark.svg'
+	import githubMark from "../github-mark.svg";
 
 	console.log("API url grabbed from .env: ", import.meta.env.VITE_API_URL);
 	const API_URL = import.meta.env.VITE_API_URL;
@@ -16,6 +16,7 @@
 	let transferSubmitted = false;
 	let transferId = "";
 	let transferState = "";
+	let serverinfo = "";
 	let workflowOutcome = null;
 	let progressPercentage = 10;
 	let chargeId = "";
@@ -63,6 +64,15 @@
 		// alert(`Transferring $${amount} from ${fromAccount} to ${toAccount}.`);
 	}
 
+	async function getServerInfo() {
+		const res = await fetch(`${API_URL}/serverinfo`, {
+			method: "GET",
+		});
+
+		const data = await res.json();
+		return data;
+	}
+
 	// Unused function to get reason for workflow failure
 	async function getWorkflowOutcome() {
 		const res = await fetch(`${API_URL}/getWorkflowOutcome`, {
@@ -83,8 +93,9 @@
 	}
 
 	onMount(async () => {
-		const intervalId = setInterval(async () => {
+		serverinfo = await getServerInfo();
 
+		const intervalId = setInterval(async () => {
 			if (transferId === "") {
 				return;
 			}
@@ -100,7 +111,6 @@
 			progressPercentage = transferState.progressPercentage;
 			chargeId = transferState.chargeResult.chargeId;
 			console.log("transferState: ", transferState);
-
 		}, 1000);
 
 		return () => {
@@ -160,9 +170,6 @@
 		<div class="">
 			<Button on:click={transferMoney}>Transfer</Button>
 		</div>
-		<h6><a href="https://github.com/steveandroulakis/temporal-money-transfer" target="_blank">
-			<img src="{githubMark}" alt="Source Code" class="w-8 h-auto"></a>
-		</h6>
 	{:else}
 		<div
 			class="sm:w-1/2 w-full mx-auto mt-10 bg-white shadow-lg rounded-lg overflow-hidden"
@@ -195,16 +202,16 @@
 						Confirmation: {chargeId}
 					</p>
 				{:else if progressPercentage < 100}
-						<p class="text-lightgrey-500 font-semibold">
-							Transfer Progress: {progressPercentage}%
-						</p>
+					<p class="text-lightgrey-500 font-semibold">
+						Transfer Progress: {progressPercentage}%
+					</p>
 
-						<div class="progress-bar">
-							<div
-								class="progress"
-								style="width: {progressPercentage}%;"
-							/>
-						</div>
+					<div class="progress-bar">
+						<div
+							class="progress"
+							style="width: {progressPercentage}%;"
+						/>
+					</div>
 				{/if}
 			</div>
 			<div class="px-6 py-3 bg-gray-100 text-right">
@@ -212,4 +219,31 @@
 			</div>
 		</div>
 	{/if}
+
+	<h6>
+		<a
+			href="https://github.com/steveandroulakis/temporal-money-transfer"
+			target="_blank"
+		>
+			<img src={githubMark} alt="Source Code" class="w-8 h-auto" /></a
+		>
+	</h6>
+
+	<div class="px-6 py-3 bg-gray-100 text-center">
+		<p class="text-gray-400 text-sm">
+			Temporal Server
+		</p>
+		{#if !serverinfo.url}
+			<p class="text-gray-400 text-sm">
+				{serverinfo.address}
+			</p>
+		{:else}
+			<p class="text-gray-400 text-sm">
+				<a target="_blank" href="{serverinfo.url}">
+					{serverinfo.address}
+				</a>
+			</p>
+		{/if}
+		<p class="text-gray-400 text-sm">Namespace: {serverinfo.namespace}</p>
+	</div>
 </section>
