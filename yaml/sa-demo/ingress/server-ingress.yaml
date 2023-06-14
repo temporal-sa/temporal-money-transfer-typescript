@@ -8,7 +8,7 @@ spec:
   - websecure
   routes:
   - kind: Rule
-    match: Host(`transferapi.tmprl-demo.cloud`)
+    match: Host(`transfer.tmprl-demo.cloud`)
     services:
     - name: temporal-money-transfer-server-service
       namespace: temporal-money-transfer

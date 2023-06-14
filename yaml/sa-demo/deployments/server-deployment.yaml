@@ -37,6 +37,8 @@ spec:
               value: "80"
             - name: PROMETHEUS_ADDRESS
               value: 0.0.0.0:9090
+            - name: VITE_API_URL
+              value:
             - name: STRIPE_SECRET_KEY
               valueFrom:
                 secretKeyRef:

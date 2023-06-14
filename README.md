@@ -12,24 +12,26 @@ https://transfer.tmprl-sa.cloud/
 
 ### Developer environment
 - Requires nodemon and ts-node installed
-- Open VSCode and hit 'start debugging' on the 'Launch' configuration
+- Open VSCode and hit 'start debugging' on the 'app' configuration
+- Or if not wanting to use vscode then run `nodemon`
 - For Temporal workers `npm run worker.workflow` and `npm run worker.activity`
 
 ### Configuration
 - `server/` contains `.env_example`. Copy it to `.env.development` and change settings to match your temporal installation.
-- `ui/` contains `.env_example`. Copy it to `.env.development` and change settings to point to your API (server) location
+- `ui/` contains `.env_example`. Copy it to `.env.development` and change settings to point to your API (server) location (default is / which should be fine)
 - The server respects .env.production if NODE_ENV is "production" (and the Svelte app is built using npm run build such as in the Dockerfile)
 
 ### Docker
 
 
-#### Server
+#### Server and UI
 
 `cd server`
 
 `docker build -t temporal-moneytransfer-server .`
 
-`docker run -p 3000:3000 -e CERT_CONTENT="$(cat /path/to/cert.pem)" -e KEY_CONTENT="$(cat /path/to/cert.key)" -e ADDRESS="steveandroulakis-test-1.sdvdw.tmprl.cloud:7233" -e NAMESPACE="steveandroulakis-test-1.sdvdw" -e PORT=3000 -d --platform linux/amd64 temporal-moneytransfer-server`
+
+`docker run -p 3000:3000 -e CERT_CONTENT="$(cat /path/to/cert.pem)" -e KEY_CONTENT="$(cat /path/to/cert.key)" -e ADDRESS="steveandroulakis-test-1.sdvdw.tmprl.cloud:7233" -e NAMESPACE="steveandroulakis-test-1.sdvdw" -e PORT=3000 -d -e VITE_API_URL="" --platform linux/amd64 temporal-moneytransfer-server`
 
 #### Workers
 
@@ -44,14 +46,6 @@ docker build -f temporal/Dockerfile -t temporal-moneytransfer-worker .
 
 docker logs -f d65ae99260a3
 
-
-#### UI
-
-`cd ui`
-
-`docker build -t temporal-moneytransfer-ui .`
-
-`docker run -p 3001:3001 -e VITE_API_URL="http://localhost:3000" -e PORT=3001 -d --platform linux/amd64 temporal-moneytransfer-ui`
 
 # Kubernetes
 
@@ -74,12 +68,9 @@ kubectl create secret generic stripe-secret-key \
 ```
 cd yaml/
 kubectl apply -f deployments/server-deployment.yaml
-kubectl apply -f deployments/ui-deployment.yaml
 kubectl apply -f services/server-service.yaml
-kubectl apply -f services/ui-service.yaml
 kubectl apply -f certificates/certificate.yaml
 kubectl apply -f ingress/server-ingress.yaml
-kubectl apply -f ingress/ui-ingress.yaml
 ```
 
 If you want workers
@@ -103,7 +94,6 @@ DONE:
 - Dev environment easily launchable using VSCode
 
 TODO:
-- The UI container builds with a hard-coded API location. Needs to be more flexible.
 - Make workflow and use case more sophisticated
 	- Expose settings to simulate the unreliability of APIs
 	- Ways to simulate failures

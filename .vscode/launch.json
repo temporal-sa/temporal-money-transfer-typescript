@@ -7,7 +7,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "API server",
+            "name": "app",
             "runtimeExecutable": "nodemon",
             "program": "${workspaceFolder}/server/index.ts",
             "restart": true,
@@ -15,31 +15,6 @@
             "internalConsoleOptions": "neverOpen",
             "skipFiles": [
                 "<node_internals>/**"
-            ]
-        },
-        {
-            "name": "UI Server",
-            "request": "launch",
-            "runtimeExecutable": "npx",
-            "console": "integratedTerminal",
-            "cwd": "${workspaceFolder}/ui",
-            "runtimeArgs": [
-                "vite", "dev", "--", "--open"
-            ],
-            "type": "node",
-            "serverReadyAction": {
-                "action": "debugWithChrome",
-                "pattern": "Local: http://localhost:([0-9]+)",
-                "uriFormat": "http://localhost:%s"
-            }
-        }
-    ],
-    "compounds": [
-        {
-            "name": "Launch",
-            "configurations": [
-                "API server",
-                "UI Server"
             ]
         }
     ]

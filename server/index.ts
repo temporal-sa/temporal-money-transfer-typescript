@@ -4,6 +4,7 @@ import express, { Request, Response } from 'express';
 import { initWorkflowParameterObj } from './temporal/config';
 import { getConfig } from "./temporal/config";
 import bodyParser from "body-parser";
+import filepath from 'path';
 
 const path = process.env.NODE_ENV === 'production'
   ? resolve(__dirname, './.env.production')
@@ -30,10 +31,13 @@ app.use(function (req, res, next) {
     next();
 });
 
+const staticFilesPath = filepath.resolve(__dirname, 'build');
+app.use(express.static(staticFilesPath));
+
 const port = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-    res.send(`Hello World!`);
+app.get('/health', (req, res) => {
+    res.send(`OK`);
 });
 
 // runWorkflow API

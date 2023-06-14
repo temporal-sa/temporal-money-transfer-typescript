@@ -6,7 +6,8 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "worker.workflow": "nodemon temporal/worker.workflow.ts",
-        "worker.activity": "nodemon temporal/worker.activity.ts"
+        "worker.activity": "nodemon temporal/worker.activity.ts",
+        "start": "cd ../ui && npm run build && cd ../server && ts-node index.ts"
     },
     "author": "",
     "license": "ISC",
