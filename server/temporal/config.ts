@@ -7,7 +7,8 @@ export interface ConfigObj {
     keyContent: string,
     address: string,
     namespace: string,
-    stripeSecretKey: string
+    stripeSecretKey: string,
+    prometheusAddress: string
 }
 
 // function that returns a ConfigObj with input environment variables
@@ -19,7 +20,8 @@ export function getConfig(): ConfigObj {
         keyContent: process.env.KEY_CONTENT || '',
         address: process.env.ADDRESS || 'localhost:7233',
         namespace: process.env.NAMESPACE || 'default',
-        stripeSecretKey: process.env.STRIPE_SECRET_KEY || ''
+        stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
+        prometheusAddress: process.env.PROMETHEUS_ADDRESS || '',
     }
 }
 
