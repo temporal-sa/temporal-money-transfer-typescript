@@ -74,6 +74,31 @@ app.post('/runWorkflow', async (req: Request, res: Response) => {
     });
 });
 
+app.get('/testConnect', async (req: Request, res: Response) => {
+
+    // if GET variable 'n' is an integer then set, otherwise default to 1
+    const n = parseInt(req.query.n as string) || 1;
+
+    const config = getConfig();
+
+    const workflowParameterObj = initWorkflowParameterObj();
+
+    // form takes input as dollars, convert to cents
+    workflowParameterObj.amountCents = 99 * 100;
+
+    const transferIds = [];
+
+    // run n times
+    for (let i = 0; i < n; i++) {
+        const transferId = await runWorkflow(config, workflowParameterObj);
+        transferIds.push(transferId);
+    }
+    
+    res.send({
+        transferIds: transferIds
+    });
+});
+
 app.post('/getWorkflowOutcome', async (req: Request, res: Response) => {
 
     if (!req.body.workflowId) {
