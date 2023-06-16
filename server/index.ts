@@ -90,6 +90,7 @@ app.get('/testConnect', async (req: Request, res: Response) => {
 
     // run n times
     for (let i = 0; i < n; i++) {
+        console.log(`run ${i} of ${n}`);
         const transferId = await runWorkflow(config, workflowParameterObj);
         transferIds.push(transferId);
     }
