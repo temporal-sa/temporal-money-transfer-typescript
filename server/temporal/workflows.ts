@@ -1,5 +1,5 @@
 import {
-  proxyActivities, setHandler, sleep, uuid4
+  proxyActivities, setHandler, sleep, uuid4, ApplicationFailure
 } from '@temporalio/workflow';
 import { ResultObj, StateObj, StripeChargeResponse, WorkflowParameterObj } from './interfaces';
 import { TASK_QUEUE_ACTIVITY } from './config';
@@ -33,12 +33,21 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
 
   await sleep('2 seconds');
 
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // throw new Error("Throwing an exception (will pause workflow).");
+
   progressPercentage = 75;
   transferState = "running";
 
   const idempotencyKey = uuid4();
 
-  chargeResult = await createCharge(idempotencyKey, workflowParameterObj.amountCents);
+  try {
+    chargeResult = await createCharge(idempotencyKey, workflowParameterObj.amountCents);
+  } catch (err) {
+    const message = `Failed to charge customer for. Error: ${err}`
+    throw ApplicationFailure.create({ message })
+  }
+
 
   await sleep('5 seconds');
 
