@@ -10,6 +10,10 @@
 	console.log("API url grabbed from .env: ", import.meta.env.VITE_API_URL);
 	const API_URL = import.meta.env.VITE_API_URL;
 
+	function navigateToRoot() {
+    	window.location.href = '/';
+  	}
+
 	let fromAccount = "";
 	let toAccount = "";
 	let amount = 0;
@@ -21,13 +25,23 @@
 	let progressPercentage = 10;
 	let chargeId = "";
 	let failed = false;
+	let waiting = false;
 	const fromAccounts = ["Checking", "Savings"];
 	const toAccounts = [
 		"Justine Morris",
-		"Raúl Ruidíaz",
-		"Iván Rancic",
-		"Marta Montero",
+		"Raul Ruidíaz",
+		"Ian Wu",
+		"Emma Stockton",
 	];
+
+    let scenario = "HAPPY_PATH";
+    const scenarios = [
+        { label: "Normal \"Happy Path\" Execution", value: "HAPPY_PATH" },
+        { label: "Require Human-In-Loop Approval", value: "HUMAN_IN_LOOP" },
+        { label: "API Downtime (recover on 5th attempt)", value: "API_DOWNTIME" },
+        { label: "Bug in Workflow (recoverable failure)", value: "BUG_IN_WORKFLOW" },
+        { label: "Insufficient Funds (unrecoverable failure)", value: "INSUFFICIENT_FUNDS" },
+    ];
 
 	async function transferMoney() {
 		console.log(`transferring $${amount}`);
@@ -38,6 +52,7 @@
 			},
 			body: JSON.stringify({
 				amount: amount,
+				scenario: scenario,
 			}),
 		});
 		const data = await res.json();
@@ -99,10 +114,18 @@
 			if (transferId === "") {
 				return;
 			}
+			if (transferState.transferState === "running") {
+				waiting = false;
+			}
 			if (transferState.transferState === "finished" || failed) {
+				waiting = false;
 				return;
 			}
+			if (transferState.transferState === "waiting") {
+				waiting = true;
+			}
 			if (transferState.workflowStatus === "FAILED") {
+				waiting = false;
 				failed = true;
 				return;
 			}
@@ -121,7 +144,7 @@
 
 <PageTitle title="Money Transfer App" url={$page.url.href} />
 <section class="flex flex-col gap-8 items-center">
-	<Loading title="" />
+	<Loading title="" on:click={navigateToRoot} />
 	<h2 class="text-2xl flex items-center gap-1">Transfer Money</h2>
 	{#if !transferSubmitted}
 		<div class="sm:w-1/2 w-full border border-gray-200 p-4 rounded-md">
@@ -167,6 +190,14 @@
 				class="mt-1 block w-full text-4xl"
 			/>
 		</div>
+		<div class="sm:w-1/2 w-full border border-gray-200 p-4 rounded-md">
+			<label for="simulate" class="block text-sm font-medium text-gray-400">Debug: Simulate</label>
+			<select id="simulate" bind:value={scenario} class="mt-1 block w-full text-2xl">
+				{#each scenarios as scenarioObj (scenarioObj.value)}
+					<option value={scenarioObj.value}>{scenarioObj.label}</option>
+				{/each}
+			</select>
+		</div>
 		<div class="">
 			<Button on:click={transferMoney}>Transfer</Button>
 		</div>
@@ -189,11 +220,15 @@
 			<div class="py-4 px-6">
 				{#if failed}
 					<p class="text-red-500 font-semibold">
-						Transfer failed. Please try again later.
+						Transfer failed: Insufficient funds
 					</p>
 					<!-- <p class="text-gray-400 text-sm">
 						Confirmation: {chargeId}
 					</p> -->
+				{:else if waiting}
+					<p class="text-orange-500 font-semibold">
+						Waiting: Approval needed
+					</p>
 				{:else if progressPercentage === 100}
 					<p class="text-green-500 font-semibold">
 						Transfer complete!
