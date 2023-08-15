@@ -1,7 +1,9 @@
 ## Temporal API and UI example
 https://transfer.tmprl-sa.cloud/
 
-- TODO, coherent instructions!
+### Run Temporal Server ([Guide](https://docs.temporal.io/kb/all-the-ways-to-run-a-cluster#temporal-cli))
+- `brew install temporal`
+- `temporal server start-dev`
 
 ### Install
 - `cd server/`
@@ -11,12 +13,16 @@ https://transfer.tmprl-sa.cloud/
 - `npm install`
 
 ### Run Developer environment
-- Requires nodemon and ts-node installed
-- Open VSCode and hit 'start debugging' on the 'app' configuration
+
+Run workers
 - Run a workflow and activity worker in separate terminals:
   - `cd server`
   - `npm run worker.workflow`
   - `npm run worker.activity`
+
+Run API and Web UI (localhost:3000)
+- Requires nodemon and ts-node installed
+- Open VSCode and hit 'start debugging' on the 'app' configuration
 
 ### Configuration
 - `server/` contains `.env_example`. Copy it to `.env.development` and change settings to match your temporal installation.
