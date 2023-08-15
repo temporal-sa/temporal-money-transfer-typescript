@@ -3,7 +3,7 @@ https://transfer.tmprl-demo.cloud/
 
 ### Run Temporal Server ([Guide](https://docs.temporal.io/kb/all-the-ways-to-run-a-cluster#temporal-cli))
 - `brew install temporal`
-- `temporal server start-dev` (localhost:8233)
+- `temporal server start-dev` (Temporal Server web UI: localhost:8233)
 
 ### Install
 - `cd server/`
@@ -23,6 +23,15 @@ Run workers
 Run API and Web UI (localhost:3000)
 - Requires nodemon and ts-node installed
 - Open VSCode: `Run -> Start Debugging`
+
+### Simulate a workflow error and recovery
+- In `./server/temporal/workflows.ts`, uncomment the line `// throw new Error('Something went wrong');`
+- Save the file, the workers will automatically restart with this change
+- Start a new transfer using the Money Transfer Web UI
+- View the workflow in the Temporal Server UI. You will see a "Workflow Task Failed" error
+- (note: If you run this in VSCode, the Money Transfer Web UI will not update from here on)
+- Re-comment the `throw new error` code
+- The workers will automatically restart and the workflow will proceed where it left off (view it as `Completed` in the Temporal Server UI)
 
 ### Configuration (optional if using local Temporal dev server)
 - `server/` contains `.env_example`. Copy it to `.env.development` and change settings to match your temporal installation.
