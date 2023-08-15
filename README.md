@@ -24,10 +24,12 @@ Run API and Web UI (localhost:3000)
 - Requires nodemon and ts-node installed
 - Open VSCode: `Run -> Start Debugging`
 
-### Configuration
+### Configuration (optional if using local Temporal dev server)
 - `server/` contains `.env_example`. Copy it to `.env.development` and change settings to match your temporal installation.
 - `ui/` contains `.env_example`. Copy it to `.env.development` and change settings to point to your API (server) location (default is / which should be fine)
 - The server respects .env.production if NODE_ENV is "production" (and the Svelte app is built using npm run build such as in the Dockerfile)
+
+## Production Deployment
 
 ### Docker
 
@@ -88,7 +90,7 @@ kubectl apply -f deployments/worker-deployment.yaml
 
 
 
-### rough notes to self on things to improve
+### (rough notes to self on things to improve)
 
 ```
 DONE:
