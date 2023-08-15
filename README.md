@@ -10,11 +10,13 @@ https://transfer.tmprl-sa.cloud/
 - `cd ui/`
 - `npm install`
 
-### Developer environment
+### Run Developer environment
 - Requires nodemon and ts-node installed
 - Open VSCode and hit 'start debugging' on the 'app' configuration
-- Or if not wanting to use vscode then run `nodemon`
-- For Temporal workers `npm run worker.workflow` and `npm run worker.activity`
+- Run a workflow and activity worker in separate terminals:
+  - `cd server`
+  - `npm run worker.workflow`
+  - `npm run worker.activity`
 
 ### Configuration
 - `server/` contains `.env_example`. Copy it to `.env.development` and change settings to match your temporal installation.
