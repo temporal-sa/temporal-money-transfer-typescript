@@ -1,5 +1,5 @@
 ## Temporal API and UI example
-https://transfer.tmprl-sa.cloud/
+https://transfer.tmprl-demo.cloud/
 
 ### Run Temporal Server ([Guide](https://docs.temporal.io/kb/all-the-ways-to-run-a-cluster#temporal-cli))
 - `brew install temporal`
