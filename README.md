@@ -22,7 +22,7 @@ Run workers
 
 Run API and Web UI (localhost:3000)
 - Requires nodemon and ts-node installed
-- Open VSCode and hit 'start debugging' on the 'app' configuration
+- Open VSCode: `Run -> Start Debugging`
 
 ### Configuration
 - `server/` contains `.env_example`. Copy it to `.env.development` and change settings to match your temporal installation.
