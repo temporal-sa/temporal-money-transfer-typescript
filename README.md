@@ -3,7 +3,7 @@ https://transfer.tmprl-sa.cloud/
 
 ### Run Temporal Server ([Guide](https://docs.temporal.io/kb/all-the-ways-to-run-a-cluster#temporal-cli))
 - `brew install temporal`
-- `temporal server start-dev`
+- `temporal server start-dev` (localhost:8233)
 
 ### Install
 - `cd server/`
