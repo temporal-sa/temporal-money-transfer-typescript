@@ -26,6 +26,7 @@ Run API and Web UI (localhost:3000)
 
 ### Configuration (optional if using local Temporal dev server)
 - `server/` contains `.env_example`. Copy it to `.env.development` and change settings to match your temporal installation.
+- STRIPE_SECRET_KEY is optional (use if you want to run simulated charges against the Stripe API)
 - `ui/` contains `.env_example`. Copy it to `.env.development` and change settings to point to your API (server) location (default is / which should be fine)
 - The server respects .env.production if NODE_ENV is "production" (and the Svelte app is built using npm run build such as in the Dockerfile)
 
