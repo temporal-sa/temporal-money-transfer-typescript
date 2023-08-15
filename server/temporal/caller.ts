@@ -43,7 +43,7 @@ async function createClient(config: ConfigObj): Promise<Client> {
   const client = new Client({
     connection,
     namespace: config.namespace,
-    dataConverter: await getDataConverter()
+    // dataConverter: await getDataConverter(), // enable for encrypted payloads
   });
 
   return client;

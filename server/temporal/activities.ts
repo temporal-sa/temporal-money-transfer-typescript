@@ -15,24 +15,30 @@ const configObj = getConfig();
 export async function createCharge(idempotencyKey: string,
   amountCents: number): Promise<StripeChargeResponse> {
 
-    const stripe = new Stripe(configObj.stripeSecretKey, {
-      apiVersion: '2022-11-15',
-    });
+  if (configObj.stripeSecretKey === undefined ||
+    configObj.stripeSecretKey === '') {
+    console.log('Stripe secret key is not set, returning dummy charge ID');
+    return { chargeId: "dummy-charge-ID" };
+  }
 
-    const customer: Stripe.Customer = await stripe.customers.create({
-      source: 'tok_visa'
-    });
+  const stripe = new Stripe(configObj.stripeSecretKey, {
+    apiVersion: '2022-11-15',
+  });
 
-    const charge = await stripe.charges.create({
-      amount: amountCents,
-      currency: 'usd',
-      customer: customer.id,
-      description: 'charge'
-    }, {
-      idempotencyKey: idempotencyKey
-    });
+  const customer: Stripe.Customer = await stripe.customers.create({
+    source: 'tok_visa'
+  });
 
-    // print Stripe.charge information
-    return { chargeId: charge.id };
+  const charge = await stripe.charges.create({
+    amount: amountCents,
+    currency: 'usd',
+    customer: customer.id,
+    description: 'charge'
+  }, {
+    idempotencyKey: idempotencyKey
+  });
+
+  // print Stripe.charge information
+  return { chargeId: charge.id };
 
 }

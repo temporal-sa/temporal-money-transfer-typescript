@@ -69,7 +69,7 @@ async function run() {
     activities: activities,
     namespace: configObj.namespace,
     taskQueue: TASK_QUEUE_ACTIVITY,
-    dataConverter: await getDataConverter(),
+    // dataConverter: await getDataConverter(), // enable for encrypted payloads
   });
   await worker.run();
 }

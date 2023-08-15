@@ -25,13 +25,17 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
   let transferState = "starting";
   let chargeResult: StripeChargeResponse = { chargeId: "" };
 
+  // Query that returns state info to the UI
   setHandler(getStateQuery, () => ({
     progressPercentage: progressPercentage,
     transferState: transferState,
     chargeResult: chargeResult
   }));
 
+  // this sleep is non-blocking!
   await sleep('2 seconds');
+
+  // throw new Error('Something went wrong');
 
   progressPercentage = 75;
   transferState = "running";
