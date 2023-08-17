@@ -14,15 +14,19 @@ https://transfer.tmprl-demo.cloud/
 
 ### Run Developer environment
 
-Run workers
+#### Run workers
 - Run a workflow and activity worker in separate terminals:
   - `cd server`
   - `npm run worker.workflow`
   - `npm run worker.activity`
 
-Run API and Web UI (localhost:3000)
+#### Run API and Web UI (localhost:3000)
 - Requires nodemon and ts-node installed
 - Open VSCode: `Run -> Start Debugging`
+
+#### (Advanced) Debug/replay Workflow histories with the [Temporal VSCode Extension](https://marketplace.visualstudio.com/items?itemName=temporal-technologies.temporalio)
+- Open /server as a VSCode project
+- Run the replayer on a downloaded workflow JSON file
 
 ### Simulate a workflow error and recovery
 - In `./server/temporal/workflows.ts`, uncomment the line `// throw new Error('Something went wrong');`
