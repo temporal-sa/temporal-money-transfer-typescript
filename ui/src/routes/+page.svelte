@@ -116,7 +116,7 @@
 		// alert(`Transferring $${amount} from ${fromAccount} to ${toAccount}.`);
 	}
 
-	let approvalTime = 5; // Set this to the actual approval time
+	let approvalTime = 0; // Set this to the actual approval time
 	let countdown = formatTime(approvalTime);
 
 	// Function to format time in MM:SS format
@@ -143,6 +143,7 @@
 			if (transferState.transferState === "waiting") {
 				waiting = true;
 				approvalTime = transferState.approvalTime;
+				countdown = formatTime(approvalTime);
 				const timerIntervalId = setInterval(() => {
 					approvalTime--;
 					countdown = formatTime(approvalTime);
@@ -258,19 +259,17 @@
 			<div class="py-4 px-6">
 				{#if failed}
 					<p class="text-red-500 font-semibold">
-						Transfer failed (ref: {transferId})
+						Transfer failed. (ref: {transferId})
 					</p>
 					<!-- <p class="text-gray-400 text-sm">
 						Confirmation: {chargeId}
 					</p> -->
 				{:else if waiting}
 					<p class="text-orange-500 font-semibold">
-						Approval required. Transfer expiring in:
+						Approval required. 
 
 						{#if approvalTime > 0}
-							{countdown}
-						{:else}
-							0:00
+						Transfer expiry in {countdown}
 						{/if}
 					</p>
 				{:else if progressPercentage === 100}
