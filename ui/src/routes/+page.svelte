@@ -1,6 +1,6 @@
 <script>
 	import { page } from "$app/stores";
-	import { onMount } from "svelte";
+	import { onMount, onDestroy } from "svelte";
 	import Badge from "@temporalio/ui/holocene/badge.svelte";
 	import Loading from "@temporalio/ui/holocene/loading.svelte";
 	import PageTitle from "@temporalio/ui/components/page-title.svelte";
@@ -11,8 +11,8 @@
 	const API_URL = import.meta.env.VITE_API_URL;
 
 	function navigateToRoot() {
-    	window.location.href = '/';
-  	}
+		window.location.href = "/";
+	}
 
 	let fromAccount = "";
 	let toAccount = "";
@@ -34,14 +34,23 @@
 		"Emma Stockton",
 	];
 
-    let scenario = "HAPPY_PATH";
-    const scenarios = [
-        { label: "Normal \"Happy Path\" Execution", value: "HAPPY_PATH" },
-        { label: "Require Human-In-Loop Approval", value: "HUMAN_IN_LOOP" },
-        { label: "API Downtime (recover on 5th attempt)", value: "API_DOWNTIME" },
-        { label: "Bug in Workflow (recoverable failure)", value: "BUG_IN_WORKFLOW" },
-        { label: "Insufficient Funds (unrecoverable failure)", value: "INSUFFICIENT_FUNDS" },
-    ];
+	let scenario = "HAPPY_PATH";
+	const scenarios = [
+		{ label: 'Normal "Happy Path" Execution', value: "HAPPY_PATH" },
+		{ label: "Require Human-In-Loop Approval", value: "HUMAN_IN_LOOP" },
+		{
+			label: "API Downtime (recover on 5th attempt)",
+			value: "API_DOWNTIME",
+		},
+		{
+			label: "Bug in Workflow (recoverable failure)",
+			value: "BUG_IN_WORKFLOW",
+		},
+		{
+			label: "Insufficient Funds (unrecoverable failure)",
+			value: "INSUFFICIENT_FUNDS",
+		},
+	];
 
 	async function transferMoney() {
 		console.log(`transferring $${amount}`);
@@ -107,6 +116,16 @@
 		// alert(`Transferring $${amount} from ${fromAccount} to ${toAccount}.`);
 	}
 
+	let approvalTime = 5; // Set this to the actual approval time
+	let countdown = formatTime(approvalTime);
+
+	// Function to format time in MM:SS format
+	function formatTime(seconds) {
+		const minutes = Math.floor(seconds / 60);
+		const remainingSeconds = seconds % 60;
+		return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+	}
+
 	onMount(async () => {
 		serverinfo = await getServerInfo();
 
@@ -123,6 +142,14 @@
 			}
 			if (transferState.transferState === "waiting") {
 				waiting = true;
+				approvalTime = transferState.approvalTime;
+				const timerIntervalId = setInterval(() => {
+					approvalTime--;
+					countdown = formatTime(approvalTime);
+					if (approvalTime <= 0) {
+						clearInterval(timerIntervalId);
+					}
+				}, 1000);
 			}
 			if (transferState.workflowStatus === "FAILED") {
 				waiting = false;
@@ -138,6 +165,7 @@
 
 		return () => {
 			clearInterval(intervalId);
+			clearInterval(timerIntervalId);
 		};
 	});
 </script>
@@ -191,10 +219,20 @@
 			/>
 		</div>
 		<div class="sm:w-1/2 w-full border border-gray-200 p-4 rounded-md">
-			<label for="simulate" class="block text-sm font-medium text-gray-400">Debug: Simulate</label>
-			<select id="simulate" bind:value={scenario} class="mt-1 block w-full text-2xl">
+			<label
+				for="simulate"
+				class="block text-sm font-medium text-gray-400"
+				>Debug: Simulate</label
+			>
+			<select
+				id="simulate"
+				bind:value={scenario}
+				class="mt-1 block w-full text-2xl"
+			>
 				{#each scenarios as scenarioObj (scenarioObj.value)}
-					<option value={scenarioObj.value}>{scenarioObj.label}</option>
+					<option value={scenarioObj.value}
+						>{scenarioObj.label}</option
+					>
 				{/each}
 			</select>
 		</div>
@@ -220,14 +258,20 @@
 			<div class="py-4 px-6">
 				{#if failed}
 					<p class="text-red-500 font-semibold">
-						Transfer failed (ref: {chargeId})
+						Transfer failed (ref: {transferId})
 					</p>
 					<!-- <p class="text-gray-400 text-sm">
 						Confirmation: {chargeId}
 					</p> -->
 				{:else if waiting}
 					<p class="text-orange-500 font-semibold">
-						Waiting: Approval needed
+						Approval required. Transfer expiring in:
+
+						{#if approvalTime > 0}
+							{countdown}
+						{:else}
+							0:00
+						{/if}
 					</p>
 				{:else if progressPercentage === 100}
 					<p class="text-green-500 font-semibold">
@@ -265,16 +309,14 @@
 	</h6>
 
 	<div class="px-6 py-3 bg-gray-100 text-center">
-		<p class="text-gray-400 text-sm">
-			Temporal Server
-		</p>
+		<p class="text-gray-400 text-sm">Temporal Server</p>
 		{#if !serverinfo.url}
 			<p class="text-gray-400 text-sm">
 				{serverinfo.address}
 			</p>
 		{:else}
 			<p class="text-gray-400 text-sm">
-				<a target="_blank" href="{serverinfo.url}">
+				<a target="_blank" href={serverinfo.url}>
 					{serverinfo.address}
 				</a>
 			</p>
