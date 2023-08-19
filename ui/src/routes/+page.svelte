@@ -220,7 +220,7 @@
 			<div class="py-4 px-6">
 				{#if failed}
 					<p class="text-red-500 font-semibold">
-						Transfer failed: Insufficient funds
+						Transfer failed (ref: {chargeId})
 					</p>
 					<!-- <p class="text-gray-400 text-sm">
 						Confirmation: {chargeId}
