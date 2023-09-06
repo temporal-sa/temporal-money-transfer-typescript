@@ -70,7 +70,9 @@ async function run() {
     namespace: configObj.namespace,
     taskQueue: TASK_QUEUE_WORKFLOW,
     // dataConverter: await getDataConverter(), // enable for encrypted payloads
-    enableNonLocalActivities: false
+    enableNonLocalActivities: false,
+    buildId: '99.0',
+    useVersioning: true
   });
   await worker.run();
 }

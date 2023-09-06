@@ -53,6 +53,11 @@ export async function runWorkflow(config: ConfigObj, workflowParameterObj: Workf
 
   const client = await createClient(config);
 
+  await client.taskQueue.updateBuildIdCompatibility(TASK_QUEUE_WORKFLOW, {
+    operation: 'addNewIdInNewDefaultSet',
+    buildId: '99.0',
+  });
+
   const transferId = 'transfer-' + nanoid();
 
   // start() returns a WorkflowHandle that can be used to await the result
@@ -61,7 +66,7 @@ export async function runWorkflow(config: ConfigObj, workflowParameterObj: Workf
     args: [workflowParameterObj],
     taskQueue: TASK_QUEUE_WORKFLOW,
     // in practice, use a meaningful business ID, like customerId or transactionId
-    workflowId: transferId
+    workflowId: transferId,
   });
 
   // don't wait for workflow to finish
@@ -77,6 +82,7 @@ export async function runWorkflow(config: ConfigObj, workflowParameterObj: Workf
 export async function runQuery(config: ConfigObj, workflowId: string): Promise<StateObj> {
 
   const client = await createClient(config);
+
 
   const handle = client.workflow.getHandle(workflowId);
 
