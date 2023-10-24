@@ -33,5 +33,5 @@ export function initWorkflowParameterObj(): WorkflowParameterObj {
     }
 }
 
-export const TASK_QUEUE_WORKFLOW = 'moneytransfer-codec'
-export const TASK_QUEUE_ACTIVITY = 'moneytransfer-activity-codec'
+export const TASK_QUEUE_WORKFLOW = 'moneytransfer'
+export const TASK_QUEUE_ACTIVITY = 'moneytransfer'

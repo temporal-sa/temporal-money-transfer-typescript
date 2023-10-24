@@ -35,8 +35,6 @@ spec:
               value: production
             - name: PORT
               value: "80"
-            - name: PROMETHEUS_ADDRESS
-              value: 0.0.0.0:9090
             - name: VITE_API_URL
               value:
             - name: STRIPE_SECRET_KEY
@@ -51,4 +49,4 @@ spec:
         - name: certs
           secret:
             defaultMode: 420
-            secretName: temporal-money-transfer-tls-helloworld
+            secretName: temporal-steveandroulakis-tls
