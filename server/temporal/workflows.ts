@@ -48,7 +48,7 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
     await condition(() => isApproved)
   }
 
-// Signal example, paste in terminal to send signal:
+// Example of sending a signal to approve the transfer (using Temporal CLI)
 // temporal workflow signal \
 // --query 'ExecutionStatus="Running" and WorkflowType="moneyTransferWorkflow"' \
 // --name approveTransfer \
