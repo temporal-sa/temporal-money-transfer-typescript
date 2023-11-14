@@ -21,8 +21,8 @@ https://transfer.tmprl-demo.cloud/
   - `npm run worker.activity`
 
 #### Run API and Web UI (localhost:3000)
-- Requires nodemon and ts-node installed
-- Open VSCode: `Run -> Start Debugging`
+(from root directory)
+- `nodemon /server/index.ts`
 
 #### (Advanced) Debug/replay Workflow histories with the [Temporal VSCode Extension](https://marketplace.visualstudio.com/items?itemName=temporal-technologies.temporalio)
 - Open /server as a VSCode project
