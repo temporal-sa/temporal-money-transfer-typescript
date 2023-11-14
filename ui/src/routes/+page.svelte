@@ -29,9 +29,16 @@
 		"Marta Montero",
 	];
 
+	let apiUrl = API_URL;
+	// if API_URL is undefined set to ""
+	if (API_URL === undefined) {
+		apiUrl = "";
+	}
+
 	async function transferMoney() {
 		console.log(`transferring $${amount}`);
-		const res = await fetch(`${API_URL}/runWorkflow`, {
+
+		const res = await fetch(`${apiUrl}/runWorkflow`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -47,7 +54,7 @@
 	}
 
 	async function getWorkflowState() {
-		const res = await fetch(`${API_URL}/runQuery`, {
+		const res = await fetch(`${apiUrl}/runQuery`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -65,7 +72,7 @@
 	}
 
 	async function getServerInfo() {
-		const res = await fetch(`${API_URL}/serverinfo`, {
+		const res = await fetch(`${apiUrl}/serverinfo`, {
 			method: "GET",
 		});
 
@@ -75,7 +82,7 @@
 
 	// Unused function to get reason for workflow failure
 	async function getWorkflowOutcome() {
-		const res = await fetch(`${API_URL}/getWorkflowOutcome`, {
+		const res = await fetch(`${apiUrl}/getWorkflowOutcome`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
