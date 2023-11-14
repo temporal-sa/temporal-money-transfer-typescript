@@ -24,9 +24,15 @@ https://transfer.tmprl-demo.cloud/
 (from root directory)
 - `nodemon /server/index.ts`
 
-#### (Advanced) Debug/replay Workflow histories with the [Temporal VSCode Extension](https://marketplace.visualstudio.com/items?itemName=temporal-technologies.temporalio)
-- Open /server as a VSCode project
-- Run the replayer on a downloaded workflow JSON file
+### Simulate human-in-the-loop approval
+- If a transfer is over 1000, the workflow will pause and wait for approval
+- Approve by sending a signal, for example using the `temporal` CLI
+```
+temporal workflow signal \
+--query 'ExecutionStatus="Running" and WorkflowType="moneyTransferWorkflow"' \
+--name approveTransfer \
+--reason 'approving transfer'
+```
 
 ### Simulate a workflow error and recovery
 - In `./server/temporal/workflows.ts`, uncomment the line `// throw new Error('Something went wrong');`
@@ -42,6 +48,10 @@ https://transfer.tmprl-demo.cloud/
 - `STRIPE_SECRET_KEY` is optional (use if you want to run simulated charges against the Stripe API)
 - `ui/` contains `.env_example`. Copy it to `.env.development` and change settings to point to your API (server) location (default is / which should be fine)
 - The server respects .env.production if NODE_ENV is "production" (and the Svelte app is built using npm run build such as in the Dockerfile)
+
+#### (Advanced) Debug/replay Workflow histories with the [Temporal VSCode Extension](https://marketplace.visualstudio.com/items?itemName=temporal-technologies.temporalio)
+- Open /server as a VSCode project
+- Run the replayer on a downloaded workflow JSON file
 
 ### (rough notes to self on things to improve)
 

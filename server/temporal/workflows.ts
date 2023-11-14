@@ -3,7 +3,7 @@ import {
 } from '@temporalio/workflow';
 import { ResultObj, StateObj, StripeChargeResponse, WorkflowParameterObj } from './interfaces';
 import { TASK_QUEUE_ACTIVITY } from './config';
-import { defineQuery } from '@temporalio/workflow';
+import { defineQuery, defineSignal, condition } from '@temporalio/workflow';
 import Stripe from 'stripe';
 
 import type * as activities from './activities';
@@ -17,6 +17,7 @@ const { createCharge } = proxyActivities<typeof activities>({
 });
 
 export const getStateQuery = defineQuery<StateObj>('getState');
+export const unblockSignal = defineSignal('approveTransfer');
 
 /** A workflow that simply calls an activity */
 export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParameterObj): Promise<ResultObj> {
@@ -24,6 +25,9 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
   let progressPercentage = 25;
   let transferState = "starting";
   let chargeResult: StripeChargeResponse = { chargeId: "" };
+
+  let isApproved = true;
+  setHandler(unblockSignal, () => void (isApproved = true));
 
   // Query that returns state info to the UI
   setHandler(getStateQuery, () => ({
@@ -35,6 +39,22 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
   // this sleep is non-blocking!
   await sleep('2 seconds');
 
+  // if dollar amount is over $1000, require approval by signal
+  console.log(`amountCents: ${workflowParameterObj.amountCents}`);
+  if(workflowParameterObj.amountCents > 100000) {
+    console.log(`amount is over 1000: requiring approval by signal`)
+    isApproved = false;
+    progressPercentage = 50;
+    await condition(() => isApproved)
+  }
+
+// Signal example, paste in terminal to send signal:
+// temporal workflow signal \
+// --query 'ExecutionStatus="Running" and WorkflowType="moneyTransferWorkflow"' \
+// --name approveTransfer \
+// --reason 'approving transfer'
+
+  // Simulate workflow error (uncomment to test)
   // throw new Error('Something went wrong');
 
   progressPercentage = 75;
