@@ -66,6 +66,7 @@ app.post('/runWorkflow', async (req: Request, res: Response) => {
 
     // form takes input as dollars, convert to cents
     workflowParameterObj.amountCents = req.body.amount * 100;
+    workflowParameterObj.scenario = req.body.scenario;
 
     const transferId = await runWorkflow(config, workflowParameterObj);
 

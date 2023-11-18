@@ -36,6 +36,9 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
     chargeResult: chargeResult
   }));
 
+  console.log(`amountCents: ${workflowParameterObj.amountCents}`);
+  console.log(`scenario: ${workflowParameterObj.scenario}`);
+
   // this sleep is non-blocking!
   await sleep('2 seconds');
 

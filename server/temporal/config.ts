@@ -1,4 +1,4 @@
-import { WorkflowParameterObj } from './interfaces'
+import { ExecutionScenarioObj, WorkflowParameterObj } from './interfaces'
 
 export interface ConfigObj {
     certPath: string,
@@ -25,11 +25,10 @@ export function getConfig(): ConfigObj {
     }
 }
 
-
-
 export function initWorkflowParameterObj(): WorkflowParameterObj {
     return {
-      amountCents: 0
+        amountCents: 0,
+        scenario: ExecutionScenarioObj.HAPPY_PATH // Default value, can be changed
     }
 }
 
