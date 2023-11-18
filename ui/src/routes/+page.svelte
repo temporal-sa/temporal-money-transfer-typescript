@@ -1,6 +1,6 @@
 <script>
 	import { page } from "$app/stores";
-	import { onMount } from "svelte";
+	import { onMount, onDestroy } from "svelte";
 	import Badge from "@temporalio/ui/holocene/badge.svelte";
 	import Loading from "@temporalio/ui/holocene/loading.svelte";
 	import PageTitle from "@temporalio/ui/components/page-title.svelte";
@@ -10,10 +10,15 @@
 	console.log("API url grabbed from .env: ", import.meta.env.VITE_API_URL);
 	const API_URL = import.meta.env.VITE_API_URL;
 
+	function navigateToRoot() {
+		window.location.href = "/";
+	}
+
 	let fromAccount = "";
 	let toAccount = "";
 	let amount = 0;
 	let transferSubmitted = false;
+	let scheduleTransferSubmitted = false;
 	let transferId = "";
 	let transferState = "";
 	let serverinfo = "";
@@ -21,12 +26,16 @@
 	let progressPercentage = 10;
 	let chargeId = "";
 	let failed = false;
+	let waiting = false;
+	let scheduleTransfer = false; // New state for the checkbox
+	let scheduleInterval = ""; // Time interval in seconds
+	let scheduleCount = ""; // Number of times to run the transfer
 	const fromAccounts = ["Checking", "Savings"];
 	const toAccounts = [
 		"Justine Morris",
-		"Raúl Ruidíaz",
-		"Iván Rancic",
-		"Marta Montero",
+		"Raul Ruidíaz",
+		"Ian Wu",
+		"Emma Stockton",
 	];
 
 	let apiUrl = API_URL;
@@ -35,22 +44,66 @@
 		apiUrl = "";
 	}
 
-	async function transferMoney() {
-		console.log(`transferring $${amount}`);
+	let scenario = "HAPPY_PATH";
+	const scenarios = [
+		{ label: 'Normal "Happy Path" Execution', value: "HAPPY_PATH" },
+		{ label: "Require Human-In-Loop Approval", value: "HUMAN_IN_LOOP" },
+		{
+			label: "API Downtime (recover on 5th attempt)",
+			value: "API_DOWNTIME",
+		},
+		{
+			label: "Bug in Workflow (recoverable failure)",
+			value: "BUG_IN_WORKFLOW",
+		},
+		{
+			label: "Insufficient Funds (unrecoverable failure)",
+			value: "INSUFFICIENT_FUNDS",
+		},
+	];
 
-		const res = await fetch(`${apiUrl}/runWorkflow`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				amount: amount,
-			}),
-		});
-		const data = await res.json();
-		console.log(data);
-		transferSubmitted = true;
-		transferId = data.transferId;
+	async function transferMoney() {
+		if (scheduleTransfer) {
+			// Handle scheduled transfers
+			console.log(
+				`scheduling regular transfers every ${scheduleInterval} seconds, ${scheduleCount} times`
+			);
+			const res = await fetch(`${apiUrl}/scheduleWorkflow`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					amount: amount,
+					scenario: scenario,
+					interval: scheduleInterval,
+					count: scheduleCount,
+				}),
+			});
+			const data = await res.json();
+			console.log(data);
+			transferSubmitted = true;
+			scheduleTransferSubmitted = true;
+			transferId = data.transferId; // Assuming the response contains a transferId
+		} else {
+			// Existing one-time transfer logic
+			console.log(`transferring $${amount}`);
+
+			const res = await fetch(`${apiUrl}/runWorkflow`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					amount: amount,
+					scenario: scenario,
+				}),
+			});
+			const data = await res.json();
+			console.log(data);
+			transferSubmitted = true;
+			transferId = data.transferId;
+		}
 	}
 
 	async function getWorkflowState() {
@@ -99,17 +152,48 @@
 		// alert(`Transferring $${amount} from ${fromAccount} to ${toAccount}.`);
 	}
 
+	let approvalTime = 0; // Set this to the actual approval time
+	let countdown = formatTime(approvalTime);
+
+	// Function to format time in MM:SS format
+	function formatTime(seconds) {
+		const minutes = Math.floor(seconds / 60);
+		const remainingSeconds = seconds % 60;
+		return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+	}
+
 	onMount(async () => {
 		serverinfo = await getServerInfo();
 
 		const intervalId = setInterval(async () => {
+			if (scheduleTransferSubmitted) {
+				return;
+			}
+
 			if (transferId === "") {
 				return;
 			}
+			if (transferState.transferState === "running") {
+				waiting = false;
+			}
 			if (transferState.transferState === "finished" || failed) {
+				waiting = false;
 				return;
 			}
+			if (transferState.transferState === "waiting") {
+				waiting = true;
+				approvalTime = transferState.approvalTime;
+				countdown = formatTime(approvalTime);
+				const timerIntervalId = setInterval(() => {
+					approvalTime--;
+					countdown = formatTime(approvalTime);
+					if (approvalTime <= 0) {
+						clearInterval(timerIntervalId);
+					}
+				}, 1000);
+			}
 			if (transferState.workflowStatus === "FAILED") {
+				waiting = false;
 				failed = true;
 				return;
 			}
@@ -122,13 +206,14 @@
 
 		return () => {
 			clearInterval(intervalId);
+			clearInterval(timerIntervalId);
 		};
 	});
 </script>
 
 <PageTitle title="Money Transfer App" url={$page.url.href} />
 <section class="flex flex-col gap-8 items-center">
-	<Loading title="" />
+	<Loading title="" on:click={navigateToRoot} />
 	<h2 class="text-2xl flex items-center gap-1">Transfer Money</h2>
 	{#if !transferSubmitted}
 		<div class="sm:w-1/2 w-full border border-gray-200 p-4 rounded-md">
@@ -174,9 +259,61 @@
 				class="mt-1 block w-full text-4xl"
 			/>
 		</div>
+		<div class="sm:w-1/2 w-full border border-gray-200 p-4 rounded-md">
+			<label
+				for="simulate"
+				class="block text-sm font-medium text-gray-400"
+				>Debug: Simulate</label
+			>
+			<select
+				id="simulate"
+				bind:value={scenario}
+				class="mt-1 block w-full text-2xl"
+			>
+				{#each scenarios as scenarioObj (scenarioObj.value)}
+					<option value={scenarioObj.value}
+						>{scenarioObj.label}</option
+					>
+				{/each}
+			</select>
+		</div>
+		<div>
+			<input
+				type="checkbox"
+				id="schedule-checkbox"
+				style="transform: scale(1.6); vertical-align: middle; margin-right:6px"
+				bind:checked={scheduleTransfer}
+			/>
+			<label style="font-size: 1.0em;" for="schedule-checkbox"
+				>Schedule a recurring transfer</label
+			>
+		</div>
+		{#if scheduleTransfer}
+			<div style="font-size: 1.5em;">
+				<span>Schedule this transfer every </span>
+				<input
+					type="number"
+					bind:value={scheduleInterval}
+					placeholder="n"
+					style="width: 50px; text-align: center; background-color: lightgrey;"
+				/>
+				<span> seconds, and run it</span>
+				<input
+					type="number"
+					bind:value={scheduleCount}
+					placeholder="n"
+					style="width: 50px; text-align: center; background-color: lightgrey;"
+				/>
+				<span> times</span>
+			</div>
+		{/if}
 		<div class="">
 			<Button on:click={transferMoney}>Transfer</Button>
 		</div>
+	{:else if scheduleTransferSubmitted}
+		<h2 class="text-2xl font-bold text-gray-700">
+			Scheduled Transfer Submitted: {transferId}
+		</h2>
 	{:else}
 		<div
 			class="sm:w-1/2 w-full mx-auto mt-10 bg-white shadow-lg rounded-lg overflow-hidden"
@@ -201,6 +338,14 @@
 					<!-- <p class="text-gray-400 text-sm">
 						Confirmation: {chargeId}
 					</p> -->
+				{:else if waiting}
+					<p class="text-orange-500 font-semibold">
+						Approval required.
+
+						{#if approvalTime > 0}
+							Transfer expiry in {countdown}
+						{/if}
+					</p>
 				{:else if progressPercentage === 100}
 					<p class="text-green-500 font-semibold">
 						Transfer complete!
@@ -237,16 +382,14 @@
 	</h6>
 
 	<div class="px-6 py-3 bg-gray-100 text-center">
-		<p class="text-gray-400 text-sm">
-			Temporal Server
-		</p>
+		<p class="text-gray-400 text-sm">Temporal Server</p>
 		{#if !serverinfo.url}
 			<p class="text-gray-400 text-sm">
 				{serverinfo.address}
 			</p>
 		{:else}
 			<p class="text-gray-400 text-sm">
-				<a target="_blank" href="{serverinfo.url}">
+				<a target="_blank" href={serverinfo.url}>
 					{serverinfo.address}
 				</a>
 			</p>

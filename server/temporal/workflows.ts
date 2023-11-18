@@ -1,7 +1,8 @@
 import {
-  proxyActivities, setHandler, sleep, uuid4
+  ApplicationFailure,
+  proxyActivities, setHandler, sleep, Trigger, uuid4, workflowInfo
 } from '@temporalio/workflow';
-import { ResultObj, StateObj, StripeChargeResponse, WorkflowParameterObj } from './interfaces';
+import { ExecutionScenarioObj, ResultObj, StateObj, StripeChargeResponse, WorkflowParameterObj } from './interfaces';
 import { TASK_QUEUE_ACTIVITY } from './config';
 import { defineQuery, defineSignal, condition } from '@temporalio/workflow';
 import Stripe from 'stripe';
@@ -17,54 +18,81 @@ const { createCharge } = proxyActivities<typeof activities>({
 });
 
 export const getStateQuery = defineQuery<StateObj>('getState');
-export const unblockSignal = defineSignal('approveTransfer');
+export const approveTransferSignal = defineSignal('approveTransfer');
 
 /** A workflow that simply calls an activity */
 export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParameterObj): Promise<ResultObj> {
 
-  let progressPercentage = 25;
-  let transferState = "starting";
-  let chargeResult: StripeChargeResponse = { chargeId: "" };
+  const approvalTimeNum = 30;
+  const approvalTime = `${approvalTimeNum} seconds`; // for feeding to temporal sleep()
 
-  let isApproved = true;
-  setHandler(unblockSignal, () => void (isApproved = true));
+  const { workflowId } = workflowInfo();
+
+  const isApproved = new Trigger<boolean>();
+  setHandler(approveTransferSignal, () => isApproved.resolve(true));
+
+  let chargeResult: StripeChargeResponse = { chargeId: "" };
 
   // Query that returns state info to the UI
   setHandler(getStateQuery, () => ({
     progressPercentage: progressPercentage,
     transferState: transferState,
-    chargeResult: chargeResult
+    workflowStatus: "", // todo deprecate
+    chargeResult: chargeResult,
+    approvalTime: approvalTimeNum,
   }));
 
-  // this sleep is non-blocking!
-  await sleep('2 seconds');
+  let progressPercentage = 25;
+  let transferState = "starting";
 
-  // if dollar amount is over $1000, require approval by signal
+  // Temporal sleeps are non-blocking!
+  await sleep('10 seconds');
+
+  progressPercentage = 50;
+  transferState = "running";
+
   console.log(`amountCents: ${workflowParameterObj.amountCents}`);
-  if(workflowParameterObj.amountCents > 100000) {
-    console.log(`amount is over 1000: requiring approval by signal`)
-    isApproved = false;
-    progressPercentage = 50;
-    await condition(() => isApproved)
+  console.log(`scenario: ${workflowParameterObj.scenario}`);
+
+  if(workflowParameterObj.scenario === ExecutionScenarioObj.HUMAN_IN_LOOP) {
+    console.log(`Waiting on 'approveTransfer' Signal or Update for workflow ID: ${workflowId}`)
+    transferState = "waiting";
+
+    // wait for human approval, else fail workflow
+    const userInteracted = await Promise.race([
+      isApproved,
+      sleep(approvalTime),
+    ]);
+
+    if (!userInteracted) {
+      // fail workflow
+      throw new ApplicationFailure(`Transfer not approved within ${approvalTime}`);
+    }
   }
 
-// Example of sending a signal to approve the transfer (using Temporal CLI)
-// temporal workflow signal \
-// --query 'ExecutionStatus="Running" and WorkflowType="moneyTransferWorkflow"' \
-// --name approveTransfer \
-// --reason 'approving transfer'
+  if(workflowParameterObj.scenario === ExecutionScenarioObj.BUG_IN_WORKFLOW) {
+    // throw an error to simulate a bug in the workflow
+    throw new Error('Workflow bug!');
+  }
 
-  // Simulate workflow error (uncomment to test)
-  // throw new Error('Something went wrong');
+  transferState = "running";
 
-  progressPercentage = 75;
+  // Example of sending a signal to approve the transfer (using Temporal CLI)
+  // temporal workflow signal \
+  // --query 'ExecutionStatus="Running" and WorkflowType="moneyTransferWorkflow"' \
+  // --name approveTransfer \
+  // --reason 'approving transfer'
+
   transferState = "running";
 
   const idempotencyKey = uuid4();
+  
+  // call activity to create charge
+  chargeResult = await createCharge(idempotencyKey, workflowParameterObj.amountCents, workflowParameterObj.scenario);
+  
+  progressPercentage = 80;
 
-  chargeResult = await createCharge(idempotencyKey, workflowParameterObj.amountCents);
-
-  await sleep('5 seconds');
+  await sleep('3 seconds');
 
   progressPercentage = 100;
   transferState = "finished";
