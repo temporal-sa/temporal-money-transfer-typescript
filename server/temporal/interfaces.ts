@@ -23,4 +23,11 @@ export interface StateObj {
 
 export type StripeChargeResponse = {
     chargeId: string;
-}  
+}
+
+export interface ScheduleParameterObj {
+    interval: number;
+    count: number;
+    amountCents: number;
+    scenario: ExecutionScenarioObj;
+}

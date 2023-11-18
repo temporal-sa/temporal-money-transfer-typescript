@@ -1,7 +1,7 @@
-import { Client, Connection, WorkflowFailedError } from '@temporalio/client';
+import { Client, Connection } from '@temporalio/client';
 import fs from 'fs-extra';
-import { ResultObj, StateObj, WorkflowParameterObj } from './interfaces';
-import { TASK_QUEUE_WORKFLOW } from './config';
+import { ResultObj, ScheduleParameterObj, StateObj, WorkflowParameterObj } from './interfaces';
+import { TASK_QUEUE_WORKFLOW, initWorkflowParameterObj } from './config';
 import { nanoid } from 'nanoid';
 import { getStateQuery, moneyTransferWorkflow } from './workflows';
 import { ConfigObj } from './config';
@@ -71,6 +71,39 @@ export async function runWorkflow(config: ConfigObj, workflowParameterObj: Workf
   await client.connection.close();
 
   return transferId;
+
+}
+
+export async function runSchedule(config: ConfigObj, scheduleParameterObj: ScheduleParameterObj): Promise<String> {
+
+  const client = await createClient(config);
+
+  const scheduleId = 'transfer-' + nanoid() + '-schedule';
+
+  const workflowParameterObj = initWorkflowParameterObj();
+  workflowParameterObj.amountCents = scheduleParameterObj.amountCents;
+  workflowParameterObj.scenario = scheduleParameterObj.scenario;
+
+  const schedule = await client.schedule.create({
+    action: {
+      type: 'startWorkflow',
+      workflowType: moneyTransferWorkflow,
+      args: [workflowParameterObj],
+      taskQueue: TASK_QUEUE_WORKFLOW,
+    },
+    scheduleId: scheduleId,
+    spec: {
+      intervals: [{ every: `${scheduleParameterObj.interval}s` }]
+    },
+    state: {
+      remainingActions: scheduleParameterObj.count,
+      
+    }
+  });
+
+  await client.connection.close();
+
+  return scheduleId;
 
 }
 
