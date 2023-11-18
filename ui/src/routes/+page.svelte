@@ -18,6 +18,7 @@
 	let toAccount = "";
 	let amount = 0;
 	let transferSubmitted = false;
+	let scheduleTransferSubmitted = false;
 	let transferId = "";
 	let transferState = "";
 	let serverinfo = "";
@@ -26,6 +27,9 @@
 	let chargeId = "";
 	let failed = false;
 	let waiting = false;
+	let scheduleTransfer = false; // New state for the checkbox
+	let scheduleInterval = ""; // Time interval in seconds
+	let scheduleCount = ""; // Number of times to run the transfer
 	const fromAccounts = ["Checking", "Savings"];
 	const toAccounts = [
 		"Justine Morris",
@@ -53,21 +57,46 @@
 	];
 
 	async function transferMoney() {
-		console.log(`transferring $${amount}`);
-		const res = await fetch(`${API_URL}/runWorkflow`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				amount: amount,
-				scenario: scenario,
-			}),
-		});
-		const data = await res.json();
-		console.log(data);
-		transferSubmitted = true;
-		transferId = data.transferId;
+		if (scheduleTransfer) {
+			// Handle scheduled transfers
+			console.log(
+				`scheduling regular transfers every ${scheduleInterval} seconds, ${scheduleCount} times`
+			);
+			const res = await fetch(`${API_URL}/scheduleWorkflow`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					amount: amount,
+					scenario: scenario,
+					interval: scheduleInterval,
+					count: scheduleCount,
+				}),
+			});
+			const data = await res.json();
+			console.log(data);
+			transferSubmitted = true;
+			scheduleTransferSubmitted = true;
+			transferId = data.transferId; // Assuming the response contains a transferId
+		} else {
+			// Existing one-time transfer logic
+			console.log(`transferring $${amount}`);
+			const res = await fetch(`${API_URL}/runWorkflow`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					amount: amount,
+					scenario: scenario,
+				}),
+			});
+			const data = await res.json();
+			console.log(data);
+			transferSubmitted = true;
+			transferId = data.transferId;
+		}
 	}
 
 	async function getWorkflowState() {
@@ -130,6 +159,10 @@
 		serverinfo = await getServerInfo();
 
 		const intervalId = setInterval(async () => {
+			if(scheduleTransferSubmitted) {
+				return;
+			}
+
 			if (transferId === "") {
 				return;
 			}
@@ -237,9 +270,41 @@
 				{/each}
 			</select>
 		</div>
+		<div>
+			<input
+				type="checkbox"
+				id="schedule-checkbox"
+				style="transform: scale(1.6); vertical-align: middle; margin-right:6px"
+				bind:checked={scheduleTransfer}
+			/> 
+			<label style="font-size: 1.0em;" for="schedule-checkbox">Schedule a recurring transfer</label>
+		</div>
+		{#if scheduleTransfer}
+			<div style="font-size: 1.5em;">
+				<span>Schedule this transfer every </span>
+				<input
+					type="number"
+					bind:value={scheduleInterval}
+					placeholder="n"
+					style="width: 50px; text-align: center; background-color: lightgrey;"
+				/>
+				<span> seconds, and run it</span>
+				<input
+					type="number"
+					bind:value={scheduleCount}
+					placeholder="n"
+					style="width: 50px; text-align: center; background-color: lightgrey;"
+				/>
+				<span> times</span>
+			</div>
+		{/if}
 		<div class="">
 			<Button on:click={transferMoney}>Transfer</Button>
 		</div>
+	{:else if scheduleTransferSubmitted}
+		<h2 class="text-2xl font-bold text-gray-700">
+			Scheduled Transfer Submitted: {transferId}
+		</h2>
 	{:else}
 		<div
 			class="sm:w-1/2 w-full mx-auto mt-10 bg-white shadow-lg rounded-lg overflow-hidden"
@@ -266,10 +331,10 @@
 					</p> -->
 				{:else if waiting}
 					<p class="text-orange-500 font-semibold">
-						Approval required. 
+						Approval required.
 
 						{#if approvalTime > 0}
-						Transfer expiry in {countdown}
+							Transfer expiry in {countdown}
 						{/if}
 					</p>
 				{:else if progressPercentage === 100}
