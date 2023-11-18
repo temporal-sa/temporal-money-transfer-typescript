@@ -62,6 +62,8 @@
 		},
 	];
 
+	let workflowStatuses = [];
+
 	async function transferMoney() {
 		if (scheduleTransfer) {
 			// Handle scheduled transfers
@@ -152,6 +154,20 @@
 		// alert(`Transferring $${amount} from ${fromAccount} to ${toAccount}.`);
 	}
 
+	async function listWorkflows() {
+		const res = await fetch(`${apiUrl}/listWorkflows`, {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			}
+		});
+
+		// fetch from runQuery with workflowId
+
+		const data = await res.json();
+		return data;
+	}
+
 	let approvalTime = 0; // Set this to the actual approval time
 	let countdown = formatTime(approvalTime);
 
@@ -166,6 +182,9 @@
 		serverinfo = await getServerInfo();
 
 		const intervalId = setInterval(async () => {
+
+			workflowStatuses = await listWorkflows();
+
 			if (scheduleTransferSubmitted) {
 				return;
 			}
@@ -312,8 +331,11 @@
 		</div>
 	{:else if scheduleTransferSubmitted}
 		<h2 class="text-2xl font-bold text-gray-700">
-			Scheduled Transfer Submitted: {transferId}
+			Transfer Schedule Submitted
 		</h2>
+		<h3>
+			{transferId}
+		</h3>
 	{:else}
 		<div
 			class="sm:w-1/2 w-full mx-auto mt-10 bg-white shadow-lg rounded-lg overflow-hidden"
@@ -371,6 +393,32 @@
 			</div>
 		</div>
 	{/if}
+	<br/>
+<!-- list workflows -->
+<h2>Transfer History (1h)</h2>
+<table class="w-full md:w-1/2 leading-normal mx-auto">
+    <thead>
+        <tr>
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Workflow ID</th>
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {#each workflowStatuses as status}
+            <tr class:bg-lightPurple={status.workflowId === transferId} class="transition duration-300 ease-in-out hover:bg-gray-100">
+                <td class="px-5 py-5 border-b border-gray-200 text-sm">
+                    {#if status.url}
+                        <a href={status.url} target="_blank">{status.workflowId}</a>
+                    {:else}
+                        {status.workflowId}
+                    {/if}
+                </td>
+                <td class="px-5 py-5 border-b border-gray-200 text-sm">{status.workflowStatus}</td>
+            </tr>
+        {/each}
+    </tbody>
+</table>
+
 
 	<h6>
 		<a

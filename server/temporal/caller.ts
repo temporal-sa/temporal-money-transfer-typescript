@@ -1,15 +1,15 @@
 import { Client, Connection } from '@temporalio/client';
 import fs from 'fs-extra';
-import { ResultObj, ScheduleParameterObj, StateObj, WorkflowParameterObj } from './interfaces';
+import { ResultObj, ScheduleParameterObj, StateObj, WorkflowParameterObj, WorkflowStatus } from './interfaces';
 import { TASK_QUEUE_WORKFLOW, initWorkflowParameterObj } from './config';
 import { nanoid } from 'nanoid';
 import { getStateQuery, moneyTransferWorkflow } from './workflows';
 import { ConfigObj } from './config';
 import { getCertKeyBuffers } from './certificate_helpers';
 import { getDataConverter } from './data-converter';
+import { createConnection } from 'net';
 
-async function createClient(config: ConfigObj): Promise<Client> {
-
+async function createConnectionObj(config: ConfigObj): Promise<Connection> {
   const { cert, key } = await getCertKeyBuffers(config);
 
   // todo make this meaningful
@@ -36,7 +36,12 @@ async function createClient(config: ConfigObj): Promise<Client> {
     };
   }
 
-  const connection = await Connection.connect(connectionOptions);
+  return await Connection.connect(connectionOptions);
+}
+
+async function createClient(config: ConfigObj): Promise<Client> {
+
+  const connection = await createConnectionObj(config);
 
   const client = new Client({
     connection,
@@ -95,13 +100,87 @@ export async function runSchedule(config: ConfigObj, scheduleParameterObj: Sched
     },
     state: {
       remainingActions: scheduleParameterObj.count,
-      
+
     }
   });
 
   await client.connection.close();
 
   return scheduleId;
+
+}
+
+function toRFC3339Nano(date: Date) {
+  const pad = (number: number, length = 2) => number.toString().padStart(length, '0');
+
+  const year = date.getUTCFullYear();
+  const month = pad(date.getUTCMonth() + 1);
+  const day = pad(date.getUTCDate());
+  const hours = pad(date.getUTCHours());
+  const minutes = pad(date.getUTCMinutes());
+  const seconds = pad(date.getUTCSeconds());
+  const milliseconds = date.getUTCMilliseconds().toString().padStart(3, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}Z`;
+}
+
+export async function listWorkflows(config: ConfigObj): Promise<WorkflowStatus[]> {
+
+  const connection = await createConnectionObj(config);
+
+  // In browsers or Node.js environments with the Performance API
+  const performance = require('perf_hooks').performance; // Only in Node.js
+
+  const nownano = performance.now();
+  const oneHourAgoInNanoSeconds = (nownano - 3600 * 1000) * 1000000;
+
+  const now = new Date();
+  const oneHourAgo = new Date(now.getTime() - 3600000);
+  const rfc3339NanoString = toRFC3339Nano(oneHourAgo);
+
+  const response = await connection.workflowService.listWorkflowExecutions({
+    namespace: config.namespace,
+    query: `WorkflowType="moneyTransferWorkflow" and StartTime > "${rfc3339NanoString}"`,
+  });
+
+  let cloud = false;
+  if (config.address.endsWith('.tmprl.cloud:7233')) {
+    cloud = true;
+  }
+
+  // list of WorkflowStatus objects
+  const workflowStatuses: WorkflowStatus[] = [];
+
+  for (let wf of response.executions) {
+
+    let wfStatus = 'unknown';
+    if (wf.execution) {
+      switch (wf.status?.toString()) {
+        case '1':
+          wfStatus = 'RUNNING';
+          break;
+        case '2':
+          wfStatus = 'COMPLETED';
+          break;
+        case '3':
+          wfStatus = 'FAILED';
+          break;
+        case '4':
+          wfStatus = 'CANCELLED';
+          break;
+      }
+
+      workflowStatuses.push({ workflowId: wf.execution.workflowId, workflowStatus: wfStatus });
+
+      if (cloud) { // if cloud then add url
+        workflowStatuses[workflowStatuses.length - 1].url = `https://cloud.temporal.io/namespaces/${config.namespace}/workflows/${wf.execution.workflowId}`;
+      }
+    }
+  }
+
+  await connection.close();
+
+  return workflowStatuses;
 
 }
 
