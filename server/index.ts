@@ -1,20 +1,20 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import express, { Request, Response } from 'express';
-import { initWorkflowParameterObj } from './temporal/config';
+import { initWorkflowParameterObj, printConfig } from './temporal/config';
 import { getConfig } from "./temporal/config";
 import bodyParser from "body-parser";
 import filepath from 'path';
 
 const path = process.env.NODE_ENV === 'production'
-  ? resolve(__dirname, './.env.production')
-  : resolve(__dirname, './.env.development');
+    ? resolve(__dirname, './.env.production')
+    : resolve(__dirname, './.env.development');
 
 config({ path });
 
 const configtest = getConfig();
 console.log(process.env.NODE_ENV);
-console.log(configtest.certPath);
+printConfig(configtest);
 
 // TEMPORARY: Allow CORS for all origins
 import cors from 'cors';
@@ -95,7 +95,7 @@ app.get('/testConnect', async (req: Request, res: Response) => {
         const transferId = await runWorkflow(config, workflowParameterObj);
         transferIds.push(transferId);
     }
-    
+
     res.send({
         transferIds: transferIds
     });
@@ -104,7 +104,7 @@ app.get('/testConnect', async (req: Request, res: Response) => {
 app.post('/getWorkflowOutcome', async (req: Request, res: Response) => {
 
     if (!req.body.workflowId) {
-        return res.send({"message": "workflowId is required"});
+        return res.send({ "message": "workflowId is required" });
     }
 
     // get workflowId from request POST body
@@ -122,17 +122,43 @@ app.post('/getWorkflowOutcome', async (req: Request, res: Response) => {
 
 app.post('/runQuery', async (req: Request, res: Response) => {
 
-    // get workflowId from request POST body
-    const workflowId = req.body.workflowId;
+    try {
+        // get workflowId from request POST body
+        const workflowId = req.body.workflowId;
 
-    const config = getConfig();
+        const config = getConfig();
 
-    const transferState = await runQuery(config, workflowId);
+        const transferState = await runQuery(config, workflowId);
 
-    console.log(`state: ${transferState}`);
+        console.log(`state: ${transferState}`);
 
-    res.send(transferState);
+        res.send(transferState);
+    }
+    catch (err) { // avoid node crashing if workflow is in task failed state
+        console.log(err);
+    }
 
+});
+
+// e.g. simulateDelay?s=7
+app.get('/simulateDelay', (req: Request, res: Response) => {
+    const secondsParam = req.query.s as string;
+
+    if (secondsParam) {
+        const seconds = parseInt(secondsParam);
+
+        if (!isNaN(seconds)) {
+            console.log(`Simulating API response delay: ${seconds} seconds`);
+
+            setTimeout(() => {
+                res.send(`Delay finished after ${seconds} seconds`);
+            }, seconds * 1000);
+        } else {
+            res.status(400).send('Invalid seconds parameter');
+        }
+    } else {
+        res.send('Use query param s to specify seconds to delay');
+    }
 });
 
 app.listen(port, () => {

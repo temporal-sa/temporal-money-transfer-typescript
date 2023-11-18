@@ -25,6 +25,20 @@ export function getConfig(): ConfigObj {
     }
 }
 
+// function to print ConfigObj
+export function printConfig(config: ConfigObj): void {
+    console.log(`ConfigObj: {
+        certPath: ${config.certPath},
+        keyPath: ${config.keyPath},
+        certContent: ${config.certContent},
+        keyContent: ${config.keyContent},
+        address: ${config.address},
+        namespace: ${config.namespace},
+        stripeSecretKey: ${config.stripeSecretKey},
+        prometheusAddress: ${config.prometheusAddress},
+    }`);
+}
+
 export function initWorkflowParameterObj(): WorkflowParameterObj {
     return {
         amountCents: 0,
@@ -32,5 +46,5 @@ export function initWorkflowParameterObj(): WorkflowParameterObj {
     }
 }
 
-export const TASK_QUEUE_WORKFLOW = 'moneytransfer'
-export const TASK_QUEUE_ACTIVITY = 'moneytransfer'
+export const TASK_QUEUE_WORKFLOW = 'moneytransfer-23-11'
+export const TASK_QUEUE_ACTIVITY = 'moneytransfer-23-11'
