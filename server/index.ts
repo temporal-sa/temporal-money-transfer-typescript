@@ -150,8 +150,6 @@ app.post('/runQuery', async (req: Request, res: Response) => {
 
         const transferState = await runQuery(config, workflowId);
 
-        console.log(`state: ${transferState}`);
-
         res.send(transferState);
     }
     catch (err) { // avoid node crashing if workflow is in task failed state

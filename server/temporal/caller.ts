@@ -36,8 +36,6 @@ async function createClient(config: ConfigObj): Promise<Client> {
     };
   }
 
-  console.log("About to connect to Temporal server...");
-
   const connection = await Connection.connect(connectionOptions);
 
   const client = new Client({
