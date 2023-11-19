@@ -59,4 +59,4 @@ export function initScheduleParameterObj(): ScheduleParameterObj {
 }
 
 export const TASK_QUEUE_WORKFLOW = 'moneytransfer-23-11'
-export const TASK_QUEUE_ACTIVITY = 'moneytransfer-23-11'
+export const TASK_QUEUE_ACTIVITY = TASK_QUEUE_WORKFLOW

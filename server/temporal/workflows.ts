@@ -23,7 +23,7 @@ export const approveTransferSignal = defineSignal('approveTransfer');
 /** A workflow that simply calls an activity */
 export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParameterObj): Promise<ResultObj> {
 
-  const approvalTimeNum = 5;
+  const approvalTimeNum = 30;
   const approvalTime = `${approvalTimeNum} seconds`; // for feeding to temporal sleep()
 
   const { workflowId } = workflowInfo();
@@ -46,7 +46,7 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
   let transferState = "starting";
 
   // Temporal sleeps are non-blocking!
-  await sleep('5 seconds');
+  await sleep('10 seconds');
 
   progressPercentage = 50;
   transferState = "running";
