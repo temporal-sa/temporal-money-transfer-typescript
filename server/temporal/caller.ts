@@ -200,6 +200,18 @@ export async function runQuery(config: ConfigObj, workflowId: string): Promise<S
 
 }
 
+export async function approveTransfer(config: ConfigObj, workflowId: string) {
+
+  const client = await createClient(config);
+
+  const handle = client.workflow.getHandle(workflowId);
+
+  await handle.signal('approveTransfer');
+
+  await client.connection.close();
+
+}
+
 export async function getWorkflowOutcome(config: ConfigObj, workflowId: string): Promise<StateObj> {
 
   const client = await createClient(config);

@@ -14,7 +14,7 @@
 		window.location.href = "/";
 	}
 
-	let fromAccount = "";
+	let fromAccount = "Checking";
 	let toAccount = "";
 	let amount = 1;
 	let transferSubmitted = false;
@@ -108,6 +108,23 @@
 		}
 	}
 
+	async function approveTransfer() {
+		// Existing one-time transfer logic
+		console.log(`approving $${transferId}`);
+
+		const res = await fetch(`${apiUrl}/approveTransfer`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				workflowId: transferId
+			}),
+		});
+		const data = await res.json();
+		console.log(data);
+	}
+
 	async function getWorkflowState() {
 		const res = await fetch(`${apiUrl}/runQuery`, {
 			method: "POST",
@@ -182,7 +199,8 @@
 		serverinfo = await getServerInfo();
 
 		const intervalId = setInterval(async () => {
-			workflowStatuses = await listWorkflows();
+			const workflowStatusesCall = await listWorkflows();
+			workflowStatuses = workflowStatusesCall;
 
 			if (scheduleTransferSubmitted) {
 				return;
@@ -411,7 +429,8 @@
 		<tbody>
 			{#each workflowStatuses as status}
 				<tr
-					class:bg-lightPurple={transferId && status.workflowId &&
+					class:bg-lightPurple={transferId &&
+						status.workflowId &&
 						status.workflowId.startsWith(transferId)}
 					class="transition duration-300 ease-in-out hover:bg-gray-100"
 				>
@@ -424,9 +443,14 @@
 							{status.workflowId}
 						{/if}
 					</td>
-					<td class="px-5 py-5 border-b border-gray-200 text-sm"
-						>{status.workflowStatus}</td
-					>
+					<td class="px-5 py-5 border-b border-gray-200 text-sm">
+						{status.workflowStatus}
+
+						{#if transferId && status.workflowId && status.workflowId.startsWith(transferId) && waiting}
+							<br />
+							<Button on:click={approveTransfer}>Approve</Button>
+						{/if}
+					</td>
 				</tr>
 			{/each}
 		</tbody>

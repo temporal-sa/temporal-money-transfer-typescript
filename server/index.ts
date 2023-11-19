@@ -18,7 +18,8 @@ printConfig(configtest);
 
 // TEMPORARY: Allow CORS for all origins
 import cors from 'cors';
-import { getWorkflowOutcome, listWorkflows, runQuery, runSchedule, runWorkflow } from "./temporal/caller";
+import { getWorkflowOutcome, listWorkflows, runQuery, 
+    runSchedule, runWorkflow, approveTransfer } from "./temporal/caller";
 
 // express handler for GET /
 const app = express();
@@ -72,6 +73,18 @@ app.post('/runWorkflow', async (req: Request, res: Response) => {
 
     res.send({
         transferId: transferId
+    });
+});
+
+// approveTransfer API
+app.post('/approveTransfer', async (req: Request, res: Response) => {
+
+    const config = getConfig();
+
+    await approveTransfer(config, req.body.workflowId);
+
+    res.send({
+        signal: "sent"
     });
 });
 
