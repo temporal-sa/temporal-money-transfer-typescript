@@ -56,7 +56,7 @@ export async function runWorkflow(config: ConfigObj, workflowParameterObj: Workf
 
   const client = await createClient(config);
 
-  const transferId = 'transfer-' + nanoid();
+  const transferId = 'transfer-' + nanoid(6);
 
   // start() returns a WorkflowHandle that can be used to await the result
   const handle = await client.workflow.start(moneyTransferWorkflow, {
@@ -81,7 +81,7 @@ export async function runSchedule(config: ConfigObj, scheduleParameterObj: Sched
 
   const client = await createClient(config);
 
-  const scheduleId = 'transfer-' + nanoid() + '-schedule';
+  const scheduleId = 'transfer-' + nanoid(6) + '-schedule';
 
   const workflowParameterObj = initWorkflowParameterObj();
   workflowParameterObj.amountCents = scheduleParameterObj.amountCents;
