@@ -18,7 +18,7 @@ printConfig(configtest);
 
 // TEMPORARY: Allow CORS for all origins
 import cors from 'cors';
-import { getWorkflowOutcome, runQuery, runSchedule, runWorkflow } from "./temporal/caller";
+import { getWorkflowOutcome, listWorkflows, runQuery, runSchedule, runWorkflow } from "./temporal/caller";
 
 // express handler for GET /
 const app = express();
@@ -137,6 +137,21 @@ app.post('/getWorkflowOutcome', async (req: Request, res: Response) => {
     console.log(`outcome: ${workflowOutcome}`);
 
     res.send(workflowOutcome);
+
+});
+
+app.get('/listWorkflows', async (req: Request, res: Response) => {
+
+    try {
+        const config = getConfig();
+
+        const workflowStatuses = await listWorkflows(config);
+
+        res.json(workflowStatuses);
+    }
+    catch (err) { // avoid node crashing if workflow is in task failed state
+        console.log(err);
+    }
 
 });
 

@@ -31,3 +31,9 @@ export interface ScheduleParameterObj {
     amountCents: number;
     scenario: ExecutionScenarioObj;
 }
+
+export interface WorkflowStatus {
+    workflowId: string | null | undefined;
+    workflowStatus: any;
+    url?: string;
+}
