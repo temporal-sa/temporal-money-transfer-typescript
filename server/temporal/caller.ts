@@ -64,7 +64,8 @@ export async function runWorkflow(config: ConfigObj, workflowParameterObj: Workf
     args: [workflowParameterObj],
     taskQueue: TASK_QUEUE_WORKFLOW,
     // in practice, use a meaningful business ID, like customerId or transactionId
-    workflowId: transferId
+    workflowId: transferId,
+    workflowExecutionTimeout: '2 hours', // to prevent stalled workflows from running forever
   });
 
   // don't wait for workflow to finish
@@ -153,7 +154,7 @@ export async function listWorkflows(config: ConfigObj): Promise<WorkflowStatus[]
 
   for (let wf of response.executions) {
 
-    let wfStatus = 'unknown';
+    let wfStatus = 'TIMED OUT';
     if (wf.execution) {
       switch (wf.status?.toString()) {
         case '1':
@@ -205,6 +206,7 @@ export async function approveTransfer(config: ConfigObj, workflowId: string) {
   const client = await createClient(config);
 
   const handle = client.workflow.getHandle(workflowId);
+  console.log(`Sending 'approveTransfer' Signal to workflow ID: ${workflowId}`)
 
   await handle.signal('approveTransfer');
 

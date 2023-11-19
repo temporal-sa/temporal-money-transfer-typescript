@@ -182,6 +182,7 @@ app.post('/runQuery', async (req: Request, res: Response) => {
     }
     catch (err) { // avoid node crashing if workflow is in task failed state
         console.log(err);
+        res.send("Error");
     }
 
 });

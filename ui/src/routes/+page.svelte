@@ -23,7 +23,7 @@
 	let transferState = "";
 	let serverinfo = "";
 	let workflowOutcome = null;
-	let progressPercentage = 10;
+	let progressPercentage = 0;
 	let chargeId = "";
 	let failed = false;
 	let waiting = false;
@@ -217,16 +217,17 @@
 				return;
 			}
 			if (transferState.transferState === "waiting") {
-				waiting = true;
-				approvalTime = transferState.approvalTime;
-				countdown = formatTime(approvalTime);
-				const timerIntervalId = setInterval(() => {
-					approvalTime--;
+				if(!waiting) {
+					approvalTime = transferState.approvalTime;
 					countdown = formatTime(approvalTime);
-					if (approvalTime <= 0) {
-						clearInterval(timerIntervalId);
-					}
-				}, 1000);
+					waiting = true;
+				}
+				countdown = formatTime(approvalTime);
+				approvalTime--;
+
+				if (approvalTime < 0) {
+					countdown = "0:00";
+				}
 			}
 			if (transferState.workflowStatus === "FAILED") {
 				waiting = false;
@@ -235,9 +236,11 @@
 			}
 
 			transferState = await getWorkflowState();
+
 			progressPercentage = transferState.progressPercentage;
 			chargeId = transferState.chargeResult.chargeId;
 			console.log("transferState: ", transferState);
+
 		}, 1000);
 
 		return () => {
@@ -381,9 +384,8 @@
 					<p class="text-orange-500 font-semibold">
 						Approval required.
 
-						{#if approvalTime > 0}
-							Transfer expiry in {countdown}
-						{/if}
+						Transfer expiry in {countdown}
+
 					</p>
 				{:else if progressPercentage === 100}
 					<p class="text-green-500 font-semibold">
