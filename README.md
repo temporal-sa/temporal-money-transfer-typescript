@@ -6,7 +6,7 @@ https://transfer.tmprl-demo.cloud/
 
 A [Java SDK version](https://github.com/steveandroulakis/temporal-money-transfer-java) of this example is also available.
 
-![UI Screenshot](./ui.png)
+![UI Screenshot](./ui2.png)
 
 ## Configuration
 
