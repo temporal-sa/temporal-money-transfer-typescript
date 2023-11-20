@@ -57,8 +57,8 @@
 			value: "BUG_IN_WORKFLOW",
 		},
 		{
-			label: "Insufficient Funds (unrecoverable failure)",
-			value: "INSUFFICIENT_FUNDS",
+			label: "Invalid Account (unrecoverable failure)",
+			value: "INVALID_ACCOUNT",
 		},
 	];
 
