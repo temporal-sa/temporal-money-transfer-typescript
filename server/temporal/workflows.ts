@@ -2,18 +2,17 @@ import {
   ApplicationFailure,
   proxyActivities, setHandler, sleep, Trigger, uuid4, workflowInfo
 } from '@temporalio/workflow';
-import { ExecutionScenarioObj, ResultObj, StateObj, StripeChargeResponse, WorkflowParameterObj } from './interfaces';
+import { ExecutionScenarioObj, ResultObj, StateObj, DepositResponse, WorkflowParameterObj } from './interfaces';
 import { TASK_QUEUE_ACTIVITY } from './config';
-import { defineQuery, defineSignal, condition } from '@temporalio/workflow';
-import Stripe from 'stripe';
+import { defineQuery, defineSignal } from '@temporalio/workflow';
 
 import type * as activities from './activities';
 
-const { createCharge } = proxyActivities<typeof activities>({
+const { withdraw, deposit, undoWithdraw } = proxyActivities<typeof activities>({
   taskQueue: TASK_QUEUE_ACTIVITY,
   startToCloseTimeout: '5 seconds',
   retry: {
-    nonRetryableErrorTypes: ['StripeInvalidRequestError']
+    nonRetryableErrorTypes: ['StripeInvalidRequestError', 'InvalidAccountException']
   }
 });
 
@@ -23,23 +22,21 @@ export const approveTransferSignal = defineSignal('approveTransfer');
 /** A workflow that simply calls an activity */
 export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParameterObj): Promise<ResultObj> {
 
-  const approvalTimeNum = 30;
-  const approvalTime = `${approvalTimeNum} seconds`; // for feeding to temporal sleep()
-
   const { workflowId } = workflowInfo();
 
   const isApproved = new Trigger<boolean>();
   setHandler(approveTransferSignal, () => isApproved.resolve(true));
 
-  let chargeResult: StripeChargeResponse = { chargeId: "" };
+  let chargeResult: DepositResponse = { chargeId: "" };
 
   // Query that returns state info to the UI
+  const approvalTimeNum = 30;
   setHandler(getStateQuery, () => ({
     progressPercentage: progressPercentage,
     transferState: transferState,
-    workflowStatus: "", // todo deprecate
+    workflowStatus: "",
     chargeResult: chargeResult,
-    approvalTime: approvalTimeNum,
+    approvalTime: approvalTimeNum, // set expiry timer in UI for human approval scenario
   }));
 
   let progressPercentage = 25;
@@ -54,7 +51,8 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
   console.log(`amountCents: ${workflowParameterObj.amountCents}`);
   console.log(`scenario: ${workflowParameterObj.scenario}`);
 
-  if(workflowParameterObj.scenario === ExecutionScenarioObj.HUMAN_IN_LOOP) {
+  if (workflowParameterObj.scenario === ExecutionScenarioObj.HUMAN_IN_LOOP) {
+    const approvalTime = `${approvalTimeNum} seconds`; // for feeding to temporal sleep()
     console.log(`Waiting on 'approveTransfer' Signal or Update for workflow ID: ${workflowId}`)
     transferState = "waiting";
 
@@ -68,28 +66,35 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
       // fail workflow
       throw new ApplicationFailure(`Transfer not approved within ${approvalTime}`);
     }
+
+    console.log(`Transfer approved for workflow ID: ${workflowId}`)
   }
 
-  if(workflowParameterObj.scenario === ExecutionScenarioObj.BUG_IN_WORKFLOW) {
+  transferState = "running";
+
+  // withdraw activity
+  await withdraw(workflowParameterObj.amountCents, workflowParameterObj.scenario);
+
+  if (workflowParameterObj.scenario === ExecutionScenarioObj.BUG_IN_WORKFLOW) {
     // throw an error to simulate a bug in the workflow
+    // uncomment the following line and restart workers to 'fix' the bug
     throw new Error('Workflow bug!');
   }
 
-  transferState = "running";
-
-  // Example of sending a signal to approve the transfer (using Temporal CLI)
-  // temporal workflow signal \
-  // --query 'ExecutionStatus="Running" and WorkflowType="moneyTransferWorkflow"' \
-  // --name approveTransfer \
-  // --reason 'approving transfer'
-
-  transferState = "running";
-
+  // deposit activity
   const idempotencyKey = uuid4();
-  
-  // call activity to create charge
-  chargeResult = await createCharge(idempotencyKey, workflowParameterObj.amountCents, workflowParameterObj.scenario);
-  
+  let depositResponse: DepositResponse = { chargeId: "" };
+
+  try {
+    // This will fail if the scenario is set to 'invalid account'
+    depositResponse = await deposit(idempotencyKey, workflowParameterObj.amountCents, workflowParameterObj.scenario);
+  } catch (error) {
+      // Compensate by reverting the withdraw if deposit fails with ApplicationFailure
+      await undoWithdraw(workflowParameterObj.amountCents);
+      console.log('Deposit failed unrecoverably, reverting withdraw');
+      throw new ApplicationFailure('Transfer failed unrecoverably');
+  }
+
   progressPercentage = 80;
 
   await sleep('8 seconds');
@@ -97,6 +102,6 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
   progressPercentage = 100;
   transferState = "finished";
 
-  return { stripeChargeResponse: chargeResult };
+  return { depositResponse };
 
 }

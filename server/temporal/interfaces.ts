@@ -3,7 +3,7 @@ export enum ExecutionScenarioObj {
     HUMAN_IN_LOOP = "HUMAN_IN_LOOP",
     API_DOWNTIME = "API_DOWNTIME",
     BUG_IN_WORKFLOW = "BUG_IN_WORKFLOW",
-    INSUFFICIENT_FUNDS = "INSUFFICIENT_FUNDS"
+    INVALID_ACCOUNT = "INVALID_ACCOUNT"
 }
 
 export interface WorkflowParameterObj {
@@ -12,7 +12,7 @@ export interface WorkflowParameterObj {
 }
 
 export interface ResultObj {
-    stripeChargeResponse: StripeChargeResponse;
+    depositResponse: DepositResponse;
 }
 
 export interface StateObj {
@@ -21,7 +21,7 @@ export interface StateObj {
     workflowStatus?: string;
 }
 
-export type StripeChargeResponse = {
+export type DepositResponse = {
     chargeId: string;
 }
 
