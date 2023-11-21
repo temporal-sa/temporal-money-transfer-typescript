@@ -74,6 +74,7 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
 
   // withdraw activity
   await withdraw(workflowParameterObj.amountCents, workflowParameterObj.scenario);
+  await sleep('2 seconds'); // for dramatic effect
 
   if (workflowParameterObj.scenario === ExecutionScenarioObj.BUG_IN_WORKFLOW) {
     // throw an error to simulate a bug in the workflow
@@ -97,7 +98,7 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
 
   progressPercentage = 80;
 
-  await sleep('8 seconds');
+  await sleep('6 seconds');
 
   progressPercentage = 100;
   transferState = "finished";

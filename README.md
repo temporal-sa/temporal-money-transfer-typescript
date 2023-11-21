@@ -33,7 +33,7 @@ Install Node dependencies:
 Run workers
 - Run a workflow worker:
   - `cd server`
-  - `npm run worker.workflow`
+  - `npm run worker`
 
 Run API and Web UI (localhost:3000)
 - `nodemon /server/index.ts` (from the project root directory)
@@ -85,6 +85,12 @@ Introduces an unrecoverable failure in the `deposit` activity (invalid account).
 Creates a [Schedule](https://docs.temporal.io/workflows#schedule) that will run a set of workflows on a cadence.
 
 Produces a schedule ID, which you can inspect in the Temporal UI's "Schedules" menu.
+
+#### Enable Encryption
+
+Set `ENCRYPT_PAYLOADS` to "true" in the configuration file (see Configuration section above). 
+
+You can decrypt these payloads in Temporal Cloud's UI/cli using the codec server: `https://codec.tmprl-demo.cloud` ([source](https://github.com/steveandroulakis/temporal-codec-server)). Ensure you switch on "Pass the user access token with your endpoint" setting in the Codec Configuration in Temporal Cloud. Note: The codec server is only compatible with workflows running in Temporal Cloud.
 
 #### List failed workflows
 temporal workflow list --env prod -q 'ExecutionStatus="Failed" OR ExecutionStatus="Terminated"'

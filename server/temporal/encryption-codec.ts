@@ -55,7 +55,7 @@ export class EncryptionCodec implements PayloadCodec {
           this.keys.set(keyId, key);
         }
         const decryptedPayloadBytes = await decrypt(payload.data, key);
-        console.log('Decrypting payload.data:', payload.data);
+        // console.log('Decrypting payload.data:', payload.data);
         return temporal.api.common.v1.Payload.decode(decryptedPayloadBytes);
       })
     );
