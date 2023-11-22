@@ -19,14 +19,11 @@ const { withdraw, deposit, undoWithdraw } = proxyActivities<typeof activities>({
 export const getStateQuery = defineQuery<StateObj>('getState');
 export const approveTransferSignal = defineSignal('approveTransfer');
 
-/** A workflow that simply calls an activity */
 export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParameterObj): Promise<ResultObj> {
 
   const { workflowId } = workflowInfo();
-
   const isApproved = new Trigger<boolean>();
   setHandler(approveTransferSignal, () => isApproved.resolve(true));
-
   let depositResponse: DepositResponse = { chargeId: "" };
   
   // Query that returns state info to the UI
@@ -70,6 +67,7 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
     console.log(`Transfer approved for workflow ID: ${workflowId}`)
   }
 
+  progressPercentage = 60
   transferState = "running";
 
   // withdraw activity
