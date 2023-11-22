@@ -11,11 +11,8 @@ COPY . .
 
 # Create a new shell script file
 RUN echo '#!/bin/sh\n\
-if [ "$WORKER_TYPE" = "activity" ] ; then\n\
-    ts-node ./temporal/worker.activity.ts\n\
-else\n\
-    ts-node ./temporal/worker.workflow.ts\n\
-fi' > /usr/src/app/entrypoint.sh
+ts-node ./temporal/worker.ts\n\
+' > /usr/src/app/entrypoint.sh
 
 # Give execute permissions to the shell script
 RUN chmod +x /usr/src/app/entrypoint.sh
