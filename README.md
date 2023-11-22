@@ -78,7 +78,7 @@ In `./server/temporal/workflows.ts`, uncomment the line `// throw new Error('Wor
 #### Simulate API Downtime (recover on 5th attempt)
 Will introduce artifical delays in the `withdraw` activity's API calls. This will cause activity retries. After 5 retries, the delay will be removed and the workflow will proceed.
 
-#### Insufficient Funds (unrecoverable failure)
+#### Invalid Account (unrecoverable failure)
 Introduces an unrecoverable failure in the `deposit` activity (invalid account). The workflow will fail after running compensation activities (`undoWithdraw`).
 
 #### Schedule a recurring transfer
