@@ -12,7 +12,8 @@ const { withdraw, deposit, undoWithdraw } = proxyActivities<typeof activities>({
   taskQueue: TASK_QUEUE_ACTIVITY,
   startToCloseTimeout: '5 seconds',
   retry: {
-    nonRetryableErrorTypes: ['StripeInvalidRequestError', 'InvalidAccountException']
+    nonRetryableErrorTypes: ['StripeInvalidRequestError', 'InvalidAccountException',
+  'StripeIdempotencyError']
   }
 });
 
@@ -80,13 +81,13 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
     throw new Error('Workflow bug!');
   }
 
-  // deposit activity
   const idempotencyKey = uuid4();
 
   try {
     // deposit activity
     // This will fail if the scenario is set to 'invalid account'
     depositResponse = await deposit(idempotencyKey, workflowParameterObj.amountCents, workflowParameterObj.scenario);
+
   } catch (error) {
       // Compensate by reverting the withdraw if deposit fails with ApplicationFailure
       await undoWithdraw(workflowParameterObj.amountCents);
