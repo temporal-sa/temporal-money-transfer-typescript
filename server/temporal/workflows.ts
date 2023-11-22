@@ -84,6 +84,7 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
   const idempotencyKey = uuid4();
 
   try {
+    // deposit activity
     // This will fail if the scenario is set to 'invalid account'
     depositResponse = await deposit(idempotencyKey, workflowParameterObj.amountCents, workflowParameterObj.scenario);
   } catch (error) {
