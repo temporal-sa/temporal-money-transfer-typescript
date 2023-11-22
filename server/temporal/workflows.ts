@@ -8,7 +8,7 @@ import { defineQuery, defineSignal } from '@temporalio/workflow';
 
 import type * as activities from './activities';
 
-const { withdraw, deposit, undoWithdraw } = proxyActivities<typeof activities>({
+const { validate, withdraw, deposit, undoWithdraw } = proxyActivities<typeof activities>({
   taskQueue: TASK_QUEUE_ACTIVITY,
   startToCloseTimeout: '5 seconds',
   retry: {
@@ -39,17 +39,13 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
 
   let progressPercentage = 25;
   let transferState = "starting";
-
   // Temporal sleeps are non-blocking!
   await sleep('5 seconds');
-
   progressPercentage = 50;
   transferState = "running";
 
-  console.log(`amountCents: ${workflowParameterObj.amountCents}`);
-  console.log(`scenario: ${workflowParameterObj.scenario}`);
-
-  if (workflowParameterObj.scenario === ExecutionScenarioObj.HUMAN_IN_LOOP) {
+  // validate activity
+  if (await validate(workflowParameterObj.scenario) === false) {
     const approvalTime = `${approvalTimeNum} seconds`; // for feeding to temporal sleep()
     console.log(`Waiting on 'approveTransfer' Signal or Update for workflow ID: ${workflowId}`)
     transferState = "waiting";

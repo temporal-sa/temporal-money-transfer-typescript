@@ -14,7 +14,16 @@ config({ path });
 
 const configObj = getConfig();
 
-export async function withdraw(amountCents: number, scenario: ExecutionScenarioObj): Promise<Boolean> {
+export async function validate(scenario: ExecutionScenarioObj): Promise<boolean> {
+  console.log(`\nAPI /validate"`);
+
+  if (scenario === ExecutionScenarioObj.HUMAN_IN_LOOP) {
+    return false;
+  }
+  return true;
+}
+
+export async function withdraw(amountCents: number, scenario: ExecutionScenarioObj): Promise<String> {
   console.log(`\nAPI /withdraw amountCents = ${amountCents}"`);
 
   const { attempt } = activity.Context.current().info;
@@ -29,11 +38,13 @@ export async function withdraw(amountCents: number, scenario: ExecutionScenarioO
     }
   }
 
-  return true;
+  return "SUCCESS";
 
 }
 
-export async function deposit(idempotencyKey: string, amountCents: number, scenario: ExecutionScenarioObj): Promise<DepositResponse> {
+export async function deposit(idempotencyKey: string, amountCents: number,
+  scenario: ExecutionScenarioObj): Promise<DepositResponse> {
+
   console.log(`\nAPI /deposit amountCents = ${amountCents}"`);
 
   if (scenario === ExecutionScenarioObj.INVALID_ACCOUNT) {
@@ -58,7 +69,9 @@ export async function undoWithdraw(amountCents: number): Promise<Boolean> {
 }
 
 // call the Stripe API to simulate a deposit
-async function stripeCharge(amountCents: number, idempotencyKey: string): Promise<DepositResponse> {
+async function stripeCharge(amountCents: number,
+  idempotencyKey: string): Promise<DepositResponse> {
+
   const stripe = new Stripe(configObj.stripeSecretKey, {
     apiVersion: '2022-11-15',
   });
