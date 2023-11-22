@@ -27,15 +27,15 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
   const isApproved = new Trigger<boolean>();
   setHandler(approveTransferSignal, () => isApproved.resolve(true));
 
-  let chargeResult: DepositResponse = { chargeId: "" };
-
+  let depositResponse: DepositResponse = { chargeId: "" };
+  
   // Query that returns state info to the UI
   const approvalTimeNum = 30;
   setHandler(getStateQuery, () => ({
     progressPercentage: progressPercentage,
     transferState: transferState,
     workflowStatus: "",
-    chargeResult: chargeResult,
+    chargeResult: depositResponse,
     approvalTime: approvalTimeNum, // set expiry timer in UI for human approval scenario
   }));
 
@@ -84,7 +84,6 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
 
   // deposit activity
   const idempotencyKey = uuid4();
-  let depositResponse: DepositResponse = { chargeId: "" };
 
   try {
     // This will fail if the scenario is set to 'invalid account'
@@ -103,6 +102,6 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
   progressPercentage = 100;
   transferState = "finished";
 
-  return { depositResponse };
+  return { depositResponse: depositResponse };
 
 }
