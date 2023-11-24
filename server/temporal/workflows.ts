@@ -40,7 +40,7 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
   let progressPercentage = 25;
   let transferState = "starting";
   // Temporal sleeps are non-blocking!
-  await sleep('20 seconds');
+  await sleep('5 seconds');
   progressPercentage = 50;
   transferState = "running";
 
