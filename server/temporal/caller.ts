@@ -1,4 +1,4 @@
-import { Client, Connection } from '@temporalio/client';
+import { Client, Connection, ScheduleOverlapPolicy } from '@temporalio/client';
 import fs from 'fs-extra';
 import { ResultObj, ScheduleParameterObj, StateObj, WorkflowParameterObj, WorkflowStatus } from './interfaces';
 import { TASK_QUEUE_WORKFLOW, initWorkflowParameterObj } from './config';
@@ -102,6 +102,10 @@ export async function runSchedule(config: ConfigObj, scheduleParameterObj: Sched
     state: {
       remainingActions: scheduleParameterObj.count,
 
+    },
+    policies: {
+      // Temporal's default schedule policy is skip
+      overlap: ScheduleOverlapPolicy.SKIP
     }
   });
 
