@@ -1,9 +1,18 @@
+export enum ExecutionScenarioObj {
+    HAPPY_PATH = "HAPPY_PATH",
+    HUMAN_IN_LOOP = "HUMAN_IN_LOOP",
+    API_DOWNTIME = "API_DOWNTIME",
+    BUG_IN_WORKFLOW = "BUG_IN_WORKFLOW",
+    INVALID_ACCOUNT = "INVALID_ACCOUNT"
+}
+
 export interface WorkflowParameterObj {
     amountCents: number;
+    scenario: ExecutionScenarioObj;
 }
 
 export interface ResultObj {
-    stripeChargeResponse: StripeChargeResponse;
+    depositResponse: DepositResponse;
 }
 
 export interface StateObj {
@@ -12,6 +21,19 @@ export interface StateObj {
     workflowStatus?: string;
 }
 
-export type StripeChargeResponse = {
+export type DepositResponse = {
     chargeId: string;
-  }  
+}
+
+export interface ScheduleParameterObj {
+    interval: number;
+    count: number;
+    amountCents: number;
+    scenario: ExecutionScenarioObj;
+}
+
+export interface WorkflowStatus {
+    workflowId: string | null | undefined;
+    workflowStatus: any;
+    url?: string;
+}

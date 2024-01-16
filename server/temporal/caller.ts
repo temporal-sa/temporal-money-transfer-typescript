@@ -1,15 +1,15 @@
-import { Client, Connection, WorkflowFailedError } from '@temporalio/client';
+import { Client, Connection, ScheduleOverlapPolicy } from '@temporalio/client';
 import fs from 'fs-extra';
-import { ResultObj, StateObj, WorkflowParameterObj } from './interfaces';
-import { TASK_QUEUE_WORKFLOW } from './config';
+import { ResultObj, ScheduleParameterObj, StateObj, WorkflowParameterObj, WorkflowStatus } from './interfaces';
+import { TASK_QUEUE_WORKFLOW, initWorkflowParameterObj } from './config';
 import { nanoid } from 'nanoid';
 import { getStateQuery, moneyTransferWorkflow } from './workflows';
 import { ConfigObj } from './config';
 import { getCertKeyBuffers } from './certificate_helpers';
 import { getDataConverter } from './data-converter';
+import { createConnection } from 'net';
 
-async function createClient(config: ConfigObj): Promise<Client> {
-
+async function createConnectionObj(config: ConfigObj): Promise<Connection> {
   const { cert, key } = await getCertKeyBuffers(config);
 
   // todo make this meaningful
@@ -36,14 +36,17 @@ async function createClient(config: ConfigObj): Promise<Client> {
     };
   }
 
-  console.log("About to connect to Temporal server...");
+  return await Connection.connect(connectionOptions);
+}
 
-  const connection = await Connection.connect(connectionOptions);
+async function createClient(config: ConfigObj): Promise<Client> {
 
-  const client = new Client({
+  const connection = await createConnectionObj(config);
+
+  let client = new Client({
     connection,
     namespace: config.namespace,
-    // dataConverter: await getDataConverter(), // enable for encrypted payloads
+    ...(config.encryptPayloads === 'true' ? { dataConverter: await getDataConverter() } : {})
   });
 
   return client;
@@ -53,7 +56,7 @@ export async function runWorkflow(config: ConfigObj, workflowParameterObj: Workf
 
   const client = await createClient(config);
 
-  const transferId = 'transfer-' + nanoid();
+  const transferId = 'transfer-' + nanoid(6);
 
   // start() returns a WorkflowHandle that can be used to await the result
   const handle = await client.workflow.start(moneyTransferWorkflow, {
@@ -61,7 +64,8 @@ export async function runWorkflow(config: ConfigObj, workflowParameterObj: Workf
     args: [workflowParameterObj],
     taskQueue: TASK_QUEUE_WORKFLOW,
     // in practice, use a meaningful business ID, like customerId or transactionId
-    workflowId: transferId
+    workflowId: transferId,
+    workflowExecutionTimeout: '2 hours', // to prevent stalled workflows from running forever
   });
 
   // don't wait for workflow to finish
@@ -71,6 +75,117 @@ export async function runWorkflow(config: ConfigObj, workflowParameterObj: Workf
   await client.connection.close();
 
   return transferId;
+
+}
+
+export async function runSchedule(config: ConfigObj, scheduleParameterObj: ScheduleParameterObj): Promise<String> {
+
+  const client = await createClient(config);
+
+  const scheduleId = 'transfer-' + nanoid(6) + '-schedule';
+
+  const workflowParameterObj = initWorkflowParameterObj();
+  workflowParameterObj.amountCents = scheduleParameterObj.amountCents;
+  workflowParameterObj.scenario = scheduleParameterObj.scenario;
+
+  const schedule = await client.schedule.create({
+    action: {
+      type: 'startWorkflow',
+      workflowType: moneyTransferWorkflow,
+      args: [workflowParameterObj],
+      taskQueue: TASK_QUEUE_WORKFLOW,
+    },
+    scheduleId: scheduleId,
+    spec: {
+      intervals: [{ every: `${scheduleParameterObj.interval}s` }]
+    },
+    state: {
+      remainingActions: scheduleParameterObj.count,
+
+    },
+    policies: {
+      // Temporal's default schedule policy is skip
+      overlap: ScheduleOverlapPolicy.SKIP
+    }
+  });
+
+  await client.connection.close();
+
+  return scheduleId;
+
+}
+
+function toRFC3339Nano(date: Date) {
+  const pad = (number: number, length = 2) => number.toString().padStart(length, '0');
+
+  const year = date.getUTCFullYear();
+  const month = pad(date.getUTCMonth() + 1);
+  const day = pad(date.getUTCDate());
+  const hours = pad(date.getUTCHours());
+  const minutes = pad(date.getUTCMinutes());
+  const seconds = pad(date.getUTCSeconds());
+  const milliseconds = date.getUTCMilliseconds().toString().padStart(3, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}Z`;
+}
+
+export async function listWorkflows(config: ConfigObj): Promise<WorkflowStatus[]> {
+
+  const connection = await createConnectionObj(config);
+
+  // In browsers or Node.js environments with the Performance API
+  const performance = require('perf_hooks').performance; // Only in Node.js
+
+  const nownano = performance.now();
+  const oneHourAgoInNanoSeconds = (nownano - 3600 * 1000) * 1000000;
+
+  const now = new Date();
+  const oneHourAgo = new Date(now.getTime() - 3600000);
+  const rfc3339NanoString = toRFC3339Nano(oneHourAgo);
+
+  const response = await connection.workflowService.listWorkflowExecutions({
+    namespace: config.namespace,
+    query: `WorkflowType="moneyTransferWorkflow" and StartTime > "${rfc3339NanoString}"`,
+  });
+
+  let cloud = false;
+  if (config.address.endsWith('.tmprl.cloud:7233')) {
+    cloud = true;
+  }
+
+  // list of WorkflowStatus objects
+  const workflowStatuses: WorkflowStatus[] = [];
+
+  for (let wf of response.executions) {
+
+    let wfStatus = 'TIMED OUT';
+    if (wf.execution) {
+      switch (wf.status?.toString()) {
+        case '1':
+          wfStatus = 'RUNNING';
+          break;
+        case '2':
+          wfStatus = 'COMPLETED';
+          break;
+        case '3':
+          wfStatus = 'FAILED';
+          break;
+        case '4':
+          wfStatus = 'CANCELLED';
+          break;
+      }
+
+      workflowStatuses.push({ workflowId: wf.execution.workflowId, workflowStatus: wfStatus });
+
+      if (cloud) { // if cloud then add url
+        workflowStatuses[workflowStatuses.length - 1].url = `https://cloud.temporal.io/namespaces/${config.namespace}/workflows/${wf.execution.workflowId}`;
+      }
+    }
+  }
+
+  await connection.close();
+
+  return workflowStatuses;
 
 }
 
@@ -87,6 +202,19 @@ export async function runQuery(config: ConfigObj, workflowId: string): Promise<S
   await client.connection.close();
 
   return queryResult;
+
+}
+
+export async function approveTransfer(config: ConfigObj, workflowId: string) {
+
+  const client = await createClient(config);
+
+  const handle = client.workflow.getHandle(workflowId);
+  console.log(`Sending 'approveTransfer' Signal to workflow ID: ${workflowId}`)
+
+  await handle.signal('approveTransfer');
+
+  await client.connection.close();
 
 }
 

@@ -1,127 +1,100 @@
-## Temporal API and UI example
+# Money Transfer Example
+
+Demos various aspects of [Temporal](https://temporal.io) using the Typescript SDK.
+
 https://transfer.tmprl-demo.cloud/
 
-### Run Temporal Server ([Guide](https://docs.temporal.io/kb/all-the-ways-to-run-a-cluster#temporal-cli))
+A [Java SDK version](https://github.com/steveandroulakis/temporal-money-transfer-java) of this example is also available.
+
+![UI Screenshot](./ui2.png)
+
+## Configuration
+
+(optional if using local Temporal dev server)
+
+- `server/` contains `.env_example`. Copy it to `.env.development` and change settings to match your temporal installation.
+- `STRIPE_SECRET_KEY` is optional (use if you want to run simulated charges against the Stripe API)
+- `ui/` contains `.env_example`. Copy it to `.env.development` and change settings to point to your API (server) location (default is / which should be fine)
+- The server respects .env.production if NODE_ENV is "production" (and the Svelte app is built using npm run build such as in the Dockerfile)
+
+## Run a Workflow
+
+Run a Temporal Server ([Guide](https://docs.temporal.io/kb/all-the-ways-to-run-a-cluster#temporal-cli))
 - `brew install temporal`
 - `temporal server start-dev` (Temporal Server web UI: localhost:8233)
 
-### Install
+Install Node dependencies:
 - `cd server/`
 - `npm install`
 
 - `cd ui/`
 - `npm install`
 
-### Run Developer environment
-
-#### Run workers
-- Run a workflow and activity worker in separate terminals:
+Run workers
+- Run a workflow worker:
   - `cd server`
-  - `npm run worker.workflow`
-  - `npm run worker.activity`
+  - `npm run worker`
 
-#### Run API and Web UI (localhost:3000)
-- Requires nodemon and ts-node installed
-- Open VSCode: `Run -> Start Debugging`
+Run API and Web UI (localhost:3000)
+- `nodemon /server/index.ts` (from the project root directory)
+
+## Demo various failures and recoveries
+
+A dropdown menu simulates the following scenarios
+
+#### Happy Path
+- The transfer will run to completion
+
+#### Require Human-In-Loop Approval
+The transfer will pause and wait for approval. If the user doesn't approve the transfer within a set time, the workflow will fail.
+
+Approve a transfer using **Signals**
+
+You can also do this through the `temporal` cli:
+```bash
+temporal workflow signal \
+--query 'ExecutionStatus="Running" and WorkflowType="moneyTransferWorkflow"' \
+--name approveTransfer \
+--reason 'approving transfer'
+```
+
+Approve a transfer using **Updates** (COMING SOON)
+
+You can do this through the `temporal` cli:
+```bash
+temporal workflow update \
+ --env prod \
+ --workflow-id TRANSFER-XXX-XXX \
+ --name approveTransferUpdate
+```
+
+The workflow's Update function has a [validator](https://docs.temporal.io/dev-guide/java/features#validate-an-update). It will reject an Update if:
+- The transfer isn't waiting for approval
+- The transfer has already been approved
+
+#### Simulate a Bug in the Workflow (recoverable failure)
+In `./server/temporal/workflows.ts`, uncomment the line `// throw new Error('Workflow bug!');`. Re-comment it and restart the worker for the workflow to recover.
+
+#### Simulate API Downtime (recover on 5th attempt)
+Will introduce artifical delays in the `withdraw` activity's API calls. This will cause activity retries. After 5 retries, the delay will be removed and the workflow will proceed.
+
+#### Invalid Account (unrecoverable failure)
+Introduces an unrecoverable failure in the `deposit` activity (invalid account). The workflow will fail after running compensation activities (`undoWithdraw`).
+
+#### Schedule a recurring transfer
+Creates a [Schedule](https://docs.temporal.io/workflows#schedule) that will run a set of workflows on a cadence.
+
+Produces a schedule ID, which you can inspect in the Temporal UI's "Schedules" menu.
+
+#### Enable Encryption
+
+Set `ENCRYPT_PAYLOADS` to "true" in the configuration file (see Configuration section above). 
+
+You can decrypt these payloads in Temporal Cloud's UI/cli using the codec server: `https://codec.tmprl-demo.cloud` ([source](https://github.com/steveandroulakis/temporal-codec-server)). Ensure you switch on "Pass the user access token with your endpoint" setting in the Codec Configuration in Temporal Cloud. Note: The codec server is only compatible with workflows running in Temporal Cloud.
+
+#### List failed workflows
+temporal workflow list --env prod -q 'ExecutionStatus="Failed" OR ExecutionStatus="Terminated"'
 
 #### (Advanced) Debug/replay Workflow histories with the [Temporal VSCode Extension](https://marketplace.visualstudio.com/items?itemName=temporal-technologies.temporalio)
 - Open /server as a VSCode project
 - Run the replayer on a downloaded workflow JSON file
-
-### Simulate a workflow error and recovery
-- In `./server/temporal/workflows.ts`, uncomment the line `// throw new Error('Something went wrong');`
-- Save the file, the workers will automatically restart with this change
-- Start a new transfer using the Money Transfer Web UI
-- View the workflow in the Temporal Server UI. You will see a "Workflow Task Failed" error
-- (note: If you run this in VSCode, the Money Transfer Web UI will not update from here on)
-- Re-comment the `throw new error` code
-- The workers will automatically restart and the workflow will proceed where it left off (view it as `Completed` in the Temporal Server UI)
-
-### Configuration (optional if using local Temporal dev server)
-- `server/` contains `.env_example`. Copy it to `.env.development` and change settings to match your temporal installation.
-- `STRIPE_SECRET_KEY` is optional (use if you want to run simulated charges against the Stripe API)
-- `ui/` contains `.env_example`. Copy it to `.env.development` and change settings to point to your API (server) location (default is / which should be fine)
-- The server respects .env.production if NODE_ENV is "production" (and the Svelte app is built using npm run build such as in the Dockerfile)
-
-## Production Deployment
-
-### Docker
-
-
-#### Server and UI
-
-`cd server`
-
-`docker build -t temporal-moneytransfer-server .`
-
-
-`docker run -p 3000:3000 -e CERT_CONTENT="$(cat /path/to/cert.pem)" -e KEY_CONTENT="$(cat /path/to/cert.key)" -e ADDRESS="steveandroulakis-test-1.sdvdw.tmprl.cloud:7233" -e NAMESPACE="steveandroulakis-test-1.sdvdw" -e PORT=3000 -d -e VITE_API_URL="" --platform linux/amd64 temporal-moneytransfer-server`
-
-#### Workers
-
-`cd server`
-
-docker build -f temporal/Dockerfile -t temporal-moneytransfer-worker .
-
-`docker run -e CERT_CONTENT="$(cat /path/to/cert.pem)" -e KEY_CONTENT="$(cat /path/to/cert.key)" -e ADDRESS="steveandroulakis-test-1.sdvdw.tmprl.cloud:7233" -e NAMESPACE="steveandroulakis-test-1.sdvdw" -e WORKER_TYPE=workflow -d --platform linux/amd64 temporal-moneytransfer-worker`
-
-`docker run -e CERT_CONTENT="$(cat /path/to/cert.pem)" -e KEY_CONTENT="$(cat /path/to/cert.key)" -e ADDRESS="steveandroulakis-test-1.sdvdw.tmprl.cloud:7233" -e NAMESPACE="steveandroulakis-test-1.sdvdw" -e WORKER_TYPE=activity -d --platform linux/amd64 temporal-moneytransfer-worker`
-
-
-docker logs -f d65ae99260a3
-
-
-# Kubernetes
-
-Create the secrets first from your keys
-```
-kubectl create secret generic temporal-EXAMPLE-tls \
-    --from-file=tls.crt=/path/to/your/tls.crt \
-    --from-file=tls.key=/path/to/your/tls.key
-```
-
-For stripe API key
-
-```
-kubectl create secret generic stripe-secret-key \
---from-literal=ADDRESS=sk_test_51NBOLuK...ToFliz
-```
-
-- Edit the yaml files to ensure your environment variables are correct (e.g. namespace and address).
-
-```
-cd yaml/
-kubectl apply -f deployments/server-deployment.yaml
-kubectl apply -f services/server-service.yaml
-kubectl apply -f certificates/certificate.yaml
-kubectl apply -f ingress/server-ingress.yaml
-```
-
-If you want workers
-```
-kubectl apply -f deployments/worker-deployment.yaml
-```
-
-
-
-### (rough notes to self on things to improve)
-
-```
-DONE:
-- Svelte UI
-- Express API
-- Simple money transfer workflow
-- The UI updates based on workflow state (via API->queries)
-- Uses Temporal Cloud
-- Separation of concerns: Docker images for Express API, Svelte UI, Temporal Worker
-- Currently hosted on AWS ECS, load balanced
-- Dev environment easily launchable using VSCode
-
-TODO:
-- Make workflow and use case more sophisticated
-	- Expose settings to simulate the unreliability of APIs
-	- Ways to simulate failures
-- Common API schema (protobuf or similar)
-- CICD pipelines and IaC (Terraform?) for easy redeployability
-- Fix ugly code, write tests
-```

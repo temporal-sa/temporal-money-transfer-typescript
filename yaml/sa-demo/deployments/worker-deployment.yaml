@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: temporal-money-transfer-worker
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: temporal-money-transfer-worker
@@ -18,8 +18,6 @@ spec:
           image: steveandroulakis/temporal-moneytransfer-worker:latest
           imagePullPolicy: Always
           env:
-            - name: WORKER_TYPE
-              value: workflow
             - name: ADDRESS
               value: helloworld.sdvdw.tmprl.cloud:7233
             - name: NAMESPACE

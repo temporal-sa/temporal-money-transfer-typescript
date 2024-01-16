@@ -2,7 +2,7 @@ import { config } from 'dotenv';
 import { resolve } from 'path';
 import { NativeConnection, Worker } from '@temporalio/worker';
 import * as activities from './activities';
-import { getConfig, TASK_QUEUE_ACTIVITY } from './config';
+import { getConfig, TASK_QUEUE_WORKFLOW } from './config';
 import { getCertKeyBuffers } from './certificate_helpers';
 import { getDataConverter } from './data-converter';
 import { Runtime } from '@temporalio/worker';
@@ -25,7 +25,7 @@ const configObj = getConfig();
 console.log(`Prometheus config address: ${configObj.prometheusAddress}`);
 
 async function run() {
-
+  // SDK metrics
   // if configObj.prometheusAddress is not null or empty
   if (configObj.prometheusAddress) {
     Runtime.install({
@@ -45,6 +45,8 @@ async function run() {
 
   // if cert and key are null
   if (cert === null && key === null) {
+    console.log('No cert and key found in .env file');
+    console.log(`Connecting to ${configObj.address}`);
     connectionOptions = {
       address: configObj.address
     };
@@ -68,9 +70,10 @@ async function run() {
     workflowsPath: require.resolve('./workflows'),
     activities: activities,
     namespace: configObj.namespace,
-    taskQueue: TASK_QUEUE_ACTIVITY,
-    // dataConverter: await getDataConverter(), // enable for encrypted payloads
+    taskQueue: TASK_QUEUE_WORKFLOW,
+    ...(configObj.encryptPayloads === 'true' ? { dataConverter: await getDataConverter() } : {})
   });
+  
   await worker.run();
 }
 
