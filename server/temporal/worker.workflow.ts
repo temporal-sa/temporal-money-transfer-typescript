@@ -45,6 +45,8 @@ async function run() {
 
   // if cert and key are null
   if (cert === null && key === null) {
+    console.log('No cert and key found in .env file');
+    console.log(`Connecting to ${configObj.address}`);
     connectionOptions = {
       address: configObj.address
     };
