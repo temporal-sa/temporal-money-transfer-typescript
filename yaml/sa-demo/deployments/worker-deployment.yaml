@@ -28,6 +28,8 @@ spec:
               value: /etc/certs/tls.key
             - name: NODE_ENV
               value: production
+            - name: PROMETHEUS_ADDRESS
+              value: 0.0.0.0:9090
             - name: STRIPE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
