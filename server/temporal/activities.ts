@@ -96,7 +96,7 @@ async function stripeCharge(amountCents: number,
 
 // call local simulateDelay API to simulate API downtime
 async function simulateDelay(seconds: number): Promise<string> {
-  const url = `http://localhost:3000/simulateDelay?s=${seconds}`; // Replace with your server URL
+  const url = `http://localhost:${configObj.port}/simulateDelay?s=${seconds}`; // Replace with your server URL
   console.log(`\n\n/API/simulateDelay URL: ${url}\n`);
 
   try {
