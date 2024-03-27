@@ -42,7 +42,7 @@ export function printConfig(config: ConfigObj): void {
         address: ${config.address},
         namespace: ${config.namespace},
         prometheusAddress: ${config.prometheusAddress},
-        encryptPayloads: ${config.encryptPayloads}
+        encryptPayloads: ${config.encryptPayloads},
         port: ${config.port}
     }`);
 }
