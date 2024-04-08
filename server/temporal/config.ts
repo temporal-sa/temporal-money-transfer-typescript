@@ -12,7 +12,8 @@ export interface ConfigObj {
     namespace: string,
     stripeSecretKey: string,
     prometheusAddress: string,
-    encryptPayloads: string
+    encryptPayloads: string,
+    port: string
 }
 
 // function that returns a ConfigObj with input environment variables
@@ -27,6 +28,7 @@ export function getConfig(): ConfigObj {
         stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
         prometheusAddress: process.env.PROMETHEUS_ADDRESS || '',
         encryptPayloads: process.env.ENCRYPT_PAYLOADS || 'false',
+        port: process.env.PORT || '3000'
     }
 }
 
@@ -40,7 +42,8 @@ export function printConfig(config: ConfigObj): void {
         address: ${config.address},
         namespace: ${config.namespace},
         prometheusAddress: ${config.prometheusAddress},
-        encryptPayloads: ${config.encryptPayloads}
+        encryptPayloads: ${config.encryptPayloads},
+        port: ${config.port}
     }`);
 }
 
