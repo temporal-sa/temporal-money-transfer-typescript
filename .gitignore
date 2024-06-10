@@ -6,3 +6,4 @@ out
 
 # all dist directories, recursively
 **/dist/**
+server/build/**
