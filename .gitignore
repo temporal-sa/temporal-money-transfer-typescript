@@ -7,3 +7,5 @@ out
 # all dist directories, recursively
 **/dist/**
 server/build/**
+server/build/_app/version.json
+server/build/index.html
