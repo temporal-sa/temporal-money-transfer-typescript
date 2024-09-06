@@ -13,7 +13,8 @@ export interface ConfigObj {
     stripeSecretKey: string,
     prometheusAddress: string,
     encryptPayloads: string,
-    port: string
+    port: string,
+    temporal_moneytransfer_sleep: string
 }
 
 // function that returns a ConfigObj with input environment variables
@@ -28,7 +29,8 @@ export function getConfig(): ConfigObj {
         stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
         prometheusAddress: process.env.PROMETHEUS_ADDRESS || '',
         encryptPayloads: process.env.ENCRYPT_PAYLOADS || 'false',
-        port: process.env.PORT || '3000'
+        port: process.env.PORT || '3000',
+        temporal_moneytransfer_sleep: process.env.TEMPORAL_MONEYTRANSFER_SLEEP || '5'
     }
 }
 
@@ -50,7 +52,8 @@ export function printConfig(config: ConfigObj): void {
 export function initWorkflowParameterObj(): WorkflowParameterObj {
     return {
         amountCents: 0,
-        scenario: ExecutionScenarioObj.HAPPY_PATH // Default value, can be changed
+        scenario: ExecutionScenarioObj.HAPPY_PATH, // Default value, can be changed
+        initialSleepTime: +getConfig().temporal_moneytransfer_sleep
     }
 }
 

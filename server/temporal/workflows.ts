@@ -3,8 +3,8 @@ import {
   proxyActivities, setHandler, sleep, Trigger, uuid4, workflowInfo
 } from '@temporalio/workflow';
 import { ExecutionScenarioObj, ResultObj, StateObj, DepositResponse, WorkflowParameterObj } from './interfaces';
-import { TASK_QUEUE_ACTIVITY } from './config';
-import { defineQuery, defineSignal } from '@temporalio/workflow';
+import { TASK_QUEUE_ACTIVITY, getConfig } from './config';
+import { defineQuery, defineSignal, defineUpdate } from '@temporalio/workflow';
 
 import type * as activities from './activities';
 
@@ -13,20 +13,42 @@ const { validate, withdraw, deposit, undoWithdraw } = proxyActivities<typeof act
   startToCloseTimeout: '5 seconds',
   retry: {
     nonRetryableErrorTypes: ['StripeInvalidRequestError', 'InvalidAccountException',
-  'StripeIdempotencyError']
+      'StripeIdempotencyError']
   }
 });
 
 export const getStateQuery = defineQuery<StateObj>('getState');
 export const approveTransferSignal = defineSignal('approveTransfer');
+export const approveTransferUpdate = defineUpdate<string>('approveTransferUpdate');
 
 export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParameterObj): Promise<ResultObj> {
 
   const { workflowId } = workflowInfo();
   const isApproved = new Trigger<boolean>();
   setHandler(approveTransferSignal, () => isApproved.resolve(true));
+
+  let approvedState = false; // if the transfer has been approved already
+
+  // Define an update validator that rejects negative inputs to the update.
+  const updateValidator = () => {
+    console.log('Approve update received. Validating...');
+    if (approvedState) {
+      throw new Error('Validation Failed: Cannot approve transfer more than once');
+    }
+    if (transferState !== 'waiting') {
+      throw new Error('Validation Failed: Cannot approve transfer when not waiting');
+    }
+  };
+
+  // Define the update handler to approve the transfer. Needs to pass the validator first
+  const updateHandler = () => {
+    isApproved.resolve(true)
+    return "successfully approved transfer";
+  };
+
+  setHandler(approveTransferUpdate, updateHandler, { validator: updateValidator });
   let depositResponse: DepositResponse = { chargeId: "" };
-  
+
   // Query that returns state info to the UI
   const approvalTimeNum = 30;
   setHandler(getStateQuery, () => ({
@@ -39,8 +61,9 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
 
   let progressPercentage = 25;
   let transferState = "starting";
+
   // Temporal sleeps are non-blocking!
-  await sleep('5 seconds');
+  await sleep(+workflowParameterObj.initialSleepTime * 1000) // in seconds;
   progressPercentage = 50;
   transferState = "running";
 
@@ -61,6 +84,7 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
       throw new ApplicationFailure(`Transfer not approved within ${approvalTime}`);
     }
 
+    approvedState = true;
     console.log(`Transfer approved for workflow ID: ${workflowId}`)
   }
 
@@ -85,10 +109,10 @@ export async function moneyTransferWorkflow(workflowParameterObj: WorkflowParame
     depositResponse = await deposit(idempotencyKey, workflowParameterObj.amountCents, workflowParameterObj.scenario);
 
   } catch (error) {
-      // Compensate by reverting the withdraw if deposit fails with ApplicationFailure
-      await undoWithdraw(workflowParameterObj.amountCents);
-      console.log('Deposit failed unrecoverably, reverting withdraw');
-      throw new ApplicationFailure('Transfer failed unrecoverably');
+    // Compensate by reverting the withdraw if deposit fails with ApplicationFailure
+    await undoWithdraw(workflowParameterObj.amountCents);
+    console.log('Deposit failed unrecoverably, reverting withdraw');
+    throw new ApplicationFailure('Transfer failed unrecoverably');
   }
 
   progressPercentage = 80;
