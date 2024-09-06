@@ -9,6 +9,7 @@ export enum ExecutionScenarioObj {
 export interface WorkflowParameterObj {
     amountCents: number;
     scenario: ExecutionScenarioObj;
+    initialSleepTime: number;
 }
 
 export interface ResultObj {
