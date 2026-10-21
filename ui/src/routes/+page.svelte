@@ -46,7 +46,7 @@
 
 	let scenario = "HAPPY_PATH";
 	const scenarios = [
-		{ label: 'Normal "Happy Path" Execution', value: "HAPPY_PATH" },
+		{ label: 'Normal "Happy Path" (Durable Execution)', value: "HAPPY_PATH" },
 		{ label: "Require Human-In-Loop Approval", value: "HUMAN_IN_LOOP" },
 		{
 			label: "API Downtime (recover on 5th attempt)",
@@ -59,6 +59,10 @@
 		{
 			label: "Invalid Account (unrecoverable failure)",
 			value: "INVALID_ACCOUNT",
+		},
+		{
+			label: "Advanced Visibility",
+			value: "ADVANCED_VISIBILITY",
 		},
 	];
 
@@ -98,6 +102,8 @@
 				},
 				body: JSON.stringify({
 					amount: amount,
+					fromAccount: fromAccount,
+					toAccount: toAccount,
 					scenario: scenario,
 				}),
 			});
@@ -460,7 +466,7 @@
 
 	<h6>
 		<a
-			href="https://github.com/steveandroulakis/temporal-money-transfer"
+			href="https://github.com/temporal-sa/money-transfer-demo"
 			target="_blank"
 		>
 			<img src={githubMark} alt="Source Code" class="w-8 h-auto" /></a
